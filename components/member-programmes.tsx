@@ -74,7 +74,7 @@ export default function MemberProgrammes(){
   event.preventDefault();setBusy(true);setError("");setMessage("");
   const {data:{user}}=await supabase.auth.getUser();
   const {error:e}=await supabase.from("welfare_applications").insert({...welfare,household_size:Number(welfare.household_size),user_id:user?.id});
-  if(e)setError(e.message);else{setMessage("Your welfare application has been submitted securely.");setWelfare(initialWelfare);}
+  if(e)setError(e.message);else{setMessage("Your welfare application has been submitted securely.");setWelfare({...initialWelfare,phone:member?.phone||"",state:member?.state||"",lga:member?.lga||""});}
   setBusy(false);
  }
  async function submitGroup(event:FormEvent<HTMLFormElement>){
