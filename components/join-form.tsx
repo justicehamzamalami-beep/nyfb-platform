@@ -7,7 +7,8 @@ export default function JoinForm(){
  const [message,setMessage]=useState<{text:string;error?:boolean}|null>(null);
  async function submit(event:FormEvent<HTMLFormElement>){
   event.preventDefault();setBusy(true);setMessage(null);
-  const form=new FormData(event.currentTarget);const v=Object.fromEntries(form.entries());
+  const formElement=event.currentTarget;
+  const form=new FormData(formElement);const v=Object.fromEntries(form.entries());
   try{
    const supabase=createClient();
    const {error}=await supabase.auth.signUp({email:String(v.email).trim().toLowerCase(),password:String(v.password),options:{data:{
