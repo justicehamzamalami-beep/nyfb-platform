@@ -120,7 +120,7 @@ export default function AdminWorkspace(){
    <div className="ny-side-caption">WORKSPACE</div>
    <nav>{nav.map(item=><button key={item.id} className={tab===item.id?"active":""} onClick={()=>{setTab(item.id);setNotice("");setError("");}}><span>{item.icon}</span>{item.label}{item.id==="members"&&counts.pending>0?<i>{counts.pending}</i>:null}</button>)}</nav>
    <Link href="/admin/programmes" className="ny-programme-link">▣ Programme management <span>→</span></Link>
-   <Link href="/admin/coordinators" className="ny-programme-link">♙ Coordinator management <span>→</span></Link>
+   {isNationalAdmin&&<Link href="/admin/coordinators" className="ny-programme-link">♙ Coordinator management <span>→</span></Link>}
    <div className="ny-side-bottom"><div className="ny-user-avatar">NA</div><div><b>National Admin</b><small>{role.replaceAll("_"," ")}</small></div><button aria-label="Sign out" onClick={signOut}>↗</button></div>
   </aside>
   <section className="ny-main">
