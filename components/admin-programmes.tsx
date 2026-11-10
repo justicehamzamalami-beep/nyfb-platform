@@ -14,7 +14,8 @@ export default function AdminProgrammes(){
  const supabase=createClient();
  const [tab,setTab]=useState<Tab>("events");
  const [role,setRole]=useState("member");
- const [events,setEvents]=useState<EventItem[]>([]);\n const [attendees,setAttendees]=useState<any[]>([]);
+ const [events,setEvents]=useState<EventItem[]>([]);
+ const [attendees,setAttendees]=useState<any[]>([]);
  const [tasks,setTasks]=useState<TaskItem[]>([]);
  const [submissions,setSubmissions]=useState<any[]>([]);
  const [groups,setGroups]=useState<ReviewItem[]>([]);
@@ -46,7 +47,8 @@ export default function AdminProgrammes(){
   const effective=p.data?.role==="national_admin"?"national_admin":(assignments[0]?.role||p.data?.role||"member");
   setRole(effective);
   if(!["national_admin","state_coordinator","lga_coordinator","ward_coordinator"].includes(effective)){setError("Your account does not have access to programme administration.");setBusy(false);return;}
-  if(!e.error)setEvents(e.data||[]);if(!t.error)setTasks(t.data||[]);if(!s.error)setSubmissions(s.data||[]);if(!g.error)setGroups(g.data||[]);if(!w.error)setWelfare(w.data||[]);if(!c.error)setCampus(c.data||[]);\n  if(!att.error){const rows=att.data||[];const ids=Array.from(new Set(rows.map((x:any)=>x.user_id)));let memberRows:any[]=[];if(ids.length){const mr=await supabase.from("members").select("user_id,full_name,member_number").in("user_id",ids);if(!mr.error)memberRows=mr.data||[];}const byUser=new Map(memberRows.map((m:any)=>[m.user_id,m]));setAttendees(rows.map((x:any)=>({...x,member:byUser.get(x.user_id)})));}
+  if(!e.error)setEvents(e.data||[]);if(!t.error)setTasks(t.data||[]);if(!s.error)setSubmissions(s.data||[]);if(!g.error)setGroups(g.data||[]);if(!w.error)setWelfare(w.data||[]);if(!c.error)setCampus(c.data||[]);
+  if(!att.error){const rows=att.data||[];const ids=Array.from(new Set(rows.map((x:any)=>x.user_id)));let memberRows:any[]=[];if(ids.length){const mr=await supabase.from("members").select("user_id,full_name,member_number").in("user_id",ids);if(!mr.error)memberRows=mr.data||[];}const byUser=new Map(memberRows.map((m:any)=>[m.user_id,m]));setAttendees(rows.map((x:any)=>({...x,member:byUser.get(x.user_id)})));}
   const first=assignments[0];if(first){setEventForm(v=>({...v,state:first.state||"",lga:first.lga||"",ward:first.ward||""}));setTaskForm(v=>({...v,state:first.state||"",lga:first.lga||"",ward:first.ward||""}));}
   setBusy(false);
  }
