@@ -72,7 +72,7 @@ export default function AdminProgrammes(){
   const {data:{user}}=await supabase.auth.getUser();
   let patch:any={status};
   if(table==="support_groups"||table==="welfare_applications")patch={...patch,reviewed_by:user?.id,reviewed_at:new Date().toISOString()};
-  if(table==="campus_mobilizers")patch={...patch,approved_by:user?.id,approved_at:status==="approved"?new Date().toISOString():null};
+  if(table==="campus_mobilizers")patch={...patch,reviewed_by:user?.id,reviewed_at:new Date().toISOString(),approved_by:status==="approved"?user?.id:null,approved_at:status==="approved"?new Date().toISOString():null};
   const {error:e}=await supabase.from(table).update(patch).eq("id",item.id);
   if(e)setError(e.message);else{setNotice("Application status updated.");await load();}
   setBusy(false);
