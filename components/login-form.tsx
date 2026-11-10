@@ -10,9 +10,17 @@ export default function LoginForm(){
   const data=new FormData(e.currentTarget);
   try{
    const supabase=createClient();
-   const {error}=await supabase.auth.signInWithPassword({email:String(data.get("email")).trim().toLowerCase(),password:String(data.get("password"))});
+   const {data:authData,error}=await supabase.auth.signInWithPassword({email:String(data.get("email")).trim().toLowerCase(),password:String(data.get("password"))});
    if(error)throw error;
-   window.location.assign("/member");
+   const userId=authData.user.id;
+   const [{data:profile},{data:assignments}]=await Promise.all([
+    supabase.from("profiles").select("role").eq("id",userId).single(),
+    supabase.from("coordinator_assignments").select("role").eq("user_id",userId)
+   ]);
+   const role=profile?.role||assignments?.[0]?.role||"member";
+   const isAdmin=role==="national_admin"||assignments?.some(a=>a.role==="national_admin");
+   const isCoordinator=["ward_coordinator","lga_coordinator","state_coordinator"].includes(role)||assignments?.some(a=>["ward_coordinator","lga_coordinator","state_coordinator"].includes(a.role));
+   window.location.assign(isAdmin?"/admin":isCoordinator?"/coordinator":"/member");
   }catch(err){setMessage(err instanceof Error?err.message:"Unable to sign in. Please try again.");}
   finally{setBusy(false);}
  }
