@@ -1,0 +1,20 @@
+"use client";
+import { FormEvent,useState } from "react";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+export default function LoginForm(){
+ const [busy,setBusy]=useState(false);
+ const [message,setMessage]=useState("");
+ async function submit(e:FormEvent<HTMLFormElement>){
+  e.preventDefault();setBusy(true);setMessage("");
+  const data=new FormData(e.currentTarget);
+  try{
+   const supabase=createClient();
+   const {error}=await supabase.auth.signInWithPassword({email:String(data.get("email")).trim().toLowerCase(),password:String(data.get("password"))});
+   if(error)throw error;
+   window.location.assign("/member");
+  }catch(err){setMessage(err instanceof Error?err.message:"Unable to sign in. Please try again.");}
+  finally{setBusy(false);}
+ }
+ return <main className="form-shell"><section className="form-card"><Link className="back-home" href="/">← Back to NYFB home</Link><div className="brand" style={{marginTop:28}}><b>NY</b><span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span></div><h1>Welcome back.</h1><p>Sign in to access your NYFB membership account.</p><form onSubmit={submit}><div className="field"><label htmlFor="email">Email address</label><input id="email" name="email" type="email" required autoComplete="email"/></div><div className="field"><label htmlFor="password">Password</label><input id="password" name="password" type="password" required autoComplete="current-password"/></div>{message&&<div role="alert" className="form-message form-error">{message}</div>}<button className="btn form-submit" disabled={busy}>{busy?"Signing in…":"Sign in"} ↗</button></form><div className="form-foot">New to NYFB? <Link href="/join">Apply for membership</Link></div></section></main>;
+}
