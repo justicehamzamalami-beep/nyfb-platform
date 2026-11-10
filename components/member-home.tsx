@@ -39,8 +39,9 @@ export default function MemberHome() {
     <main className="member-dashboard-shell">
       <section className="member-space">
         <div className="member-actions"><Link className="back-home" href="/">← NYFB home</Link><button onClick={signOut} className="back-home sign-out">Sign out</button></div>
-        <nav className="member-navigation" aria-label="Member navigation"><a href="#dashboard">Dashboard</a><a href="#profile">Profile</a><a href="#membership-card">Membership card</a><a href="#announcements">Announcements</a><Link href="/programmes">Programmes &amp; events</Link><a href="/#about">About NYFB</a><Link href="/forgot-password">Settings</Link><a href="mailto:nigerianyouthforbat@gmail.com">Help &amp; support</a></nav>
+
         <div className="brand member-brand" style={{marginTop:24}}><b>NY</b><span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span></div>
+                <nav className="member-navigation" aria-label="Member navigation"><a href="#dashboard">Dashboard</a><a href="#profile">Profile</a><a href="#membership-card">Membership card</a><a href="#announcements">Announcements</a><Link href="/programmes">Programmes &amp; events</Link><a href="/#about">About NYFB</a><Link href="/forgot-password">Settings</Link><a href="mailto:nigerianyouthforbat@gmail.com">Help &amp; support</a></nav>
         <div className="member-heading"><div><small>MEMBER PORTAL</small><h1 id="dashboard">Your NYFB dashboard</h1><p>Manage your membership, stay informed and take part in NYFB programmes.</p></div><span className="member-portal-tag">SECURE MEMBER AREA</span></div>
         {busy?<p>Loading your membership details…</p>:error?<div className="form-message form-error">{error}</div>:!member?<p>No membership record was found for this account.</p>:<>
           <p>Welcome, {member.full_name}. Here is your current membership record.</p>
