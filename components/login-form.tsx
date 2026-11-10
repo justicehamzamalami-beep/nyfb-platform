@@ -1,8 +1,10 @@
 "use client";
 import { FormEvent,useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 export default function LoginForm(){
+ const router=useRouter();
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState("");
  async function submit(e:FormEvent<HTMLFormElement>){
@@ -20,7 +22,7 @@ export default function LoginForm(){
    const role=profile?.role||assignments?.[0]?.role||"member";
    const isAdmin=role==="national_admin"||assignments?.some(a=>a.role==="national_admin");
    const isCoordinator=["ward_coordinator","lga_coordinator","state_coordinator"].includes(role)||assignments?.some(a=>["ward_coordinator","lga_coordinator","state_coordinator"].includes(a.role));
-   window.location.assign(isAdmin?"/admin":isCoordinator?"/coordinator":"/member");
+   router.replace(isAdmin?"/admin":isCoordinator?"/coordinator":"/member");
   }catch(err){setMessage(err instanceof Error?err.message:"Unable to sign in. Please try again.");}
   finally{setBusy(false);}
  }
