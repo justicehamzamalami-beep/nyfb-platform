@@ -172,9 +172,7 @@ export default function AdminWorkspace(){
    .ny-activity-list{display:grid}.ny-activity-list article{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #edf1ed}.ny-activity-icon{width:32px;height:32px;border-radius:50%;background:#eef5ef;color:var(--g);display:grid;place-items:center;flex-shrink:0}.ny-activity-list b{font-size:11px;text-transform:capitalize}.ny-activity-list p{font-size:10px;color:#758279;margin:5px 0}.ny-activity-list small{font-size:9px;color:#9aa69d}.ny-alert{padding:12px 14px;border-radius:7px;background:#edf7ee;color:#2f7047;font-size:11px;line-height:1.5;margin-bottom:16px}.ny-alert.error{background:#fff0ed;color:#9b493e}.ny-loading,.ny-empty{padding:26px;text-align:center;color:#829087;font-size:11px}.ny-loading span{display:inline-block;width:13px;height:13px;border:2px solid #d5e3d8;border-top-color:var(--g);border-radius:50%;margin-right:9px;vertical-align:middle;animation:nyspin .8s linear infinite}@keyframes nyspin{to{transform:rotate(360deg)}}.ny-footer{display:flex;justify-content:space-between;gap:12px;padding:25px 2px 5px;color:#a0aaa2;font-size:8px;letter-spacing:1px}
    @media(max-width:1050px){.ny-sidebar{width:210px}.ny-content{padding:28px 22px}.ny-overview-grid{grid-template-columns:1fr}.ny-stats{grid-template-columns:repeat(2,1fr)}}
    @media(max-width:680px){.ny-admin{display:block}.ny-sidebar{position:relative;width:100%;height:auto;min-height:0;padding:14px 14px 12px;overflow:visible}.ny-brand{padding:0 4px 12px}.ny-sidebar nav{display:flex;overflow-x:auto;gap:4px;padding-bottom:7px}.ny-programme-link{display:inline-flex;width:auto;white-space:nowrap;margin:5px 4px 0;padding:9px 10px;font-size:9px}.ny-sidebar{overflow:hidden}.ny-sidebar nav button{width:auto;min-width:max-content;padding:10px}.ny-sidebar nav button span{font-size:15px}.ny-side-caption,.ny-side-bottom{display:none}.ny-sidebar .ny-side-group{display:none}.ny-sidebar .ny-programme-link{display:inline-flex;width:calc(50% - 8px);vertical-align:top;margin:5px 3px 0;padding:9px 8px;font-size:9px}.ny-sidebar .ny-link-icon{width:14px}.ny-sidebar .ny-programme-link b{font-size:11px}.ny-topbar{height:54px;padding:0 15px;position:sticky;top:0;z-index:5}.ny-top-actions{gap:7px}.ny-live-dot{display:none}.ny-top-actions button{font-size:9px;padding:7px}.ny-content{padding:23px 14px}.ny-welcome h1{font-size:27px}.ny-overview-grid{gap:12px}.ny-welcome{display:block}.ny-date-chip{display:inline-block;margin-top:13px}.ny-stats{gap:8px}.ny-stat{padding:13px}.ny-stat>strong{font-size:26px}.ny-stat>small{font-size:9px}.ny-panel{padding:14px}.ny-filter-cards{grid-template-columns:repeat(3,1fr)}.ny-member-toolbar{align-items:flex-start;flex-direction:column}.ny-search-tools{width:100%}.ny-search-tools input{width:100%}.ny-form-row{display:grid;grid-template-columns:1fr}.ny-ann-foot{align-items:flex-start;flex-direction:column}.ny-ann-foot .ny-actions{margin-left:0}.ny-footer{flex-direction:column}.ny-profile-grid{grid-template-columns:1fr}.ny-top-signout{display:none}}
-  `}</style>
- </main>;
-}
+
    .ny-sidebar{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#ffffff35 transparent}
    .ny-side-group{margin-top:20px!important;padding:16px 12px 9px!important;border-top:1px solid #ffffff1c}
    .ny-programme-link{justify-content:flex-start!important;gap:10px!important;margin:5px 2px 0!important;padding:11px 10px!important;border:1px solid transparent!important}
@@ -196,3 +194,7 @@ export default function AdminWorkspace(){
     .ny-topbar{position:sticky;top:0;z-index:5}
    }
 
+
+  `}</style>
+ </main>;
+}
