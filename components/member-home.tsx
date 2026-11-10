@@ -12,6 +12,7 @@ export default function MemberHome() {
   const [announcements,setAnnouncements]=useState<Announcement[]>([]);
   const [busy,setBusy]=useState(true);
   const [error,setError]=useState("");
+  const [stats,setStats]=useState({points:0,tasks:0,events:0,referrals:0,verifiedReferrals:0});
 
   useEffect(()=>{
     let active=true;
@@ -20,13 +21,28 @@ export default function MemberHome() {
         const supabase=createClient();
         const {data:{user},error:authError}=await supabase.auth.getUser();
         if(authError||!user){window.location.replace("/login");return;}
-        const [memberResult,announcementResult]=await Promise.all([
+        const [memberResult,announcementResult,taskResult,attendanceResult,referralResult]=await Promise.all([
           supabase.from("members").select("member_number,full_name,status,state,lga,ward,reviewed_at").eq("user_id",user.id).maybeSingle(),
-          supabase.from("announcements").select("id,title,body,audience,target_state,published_at,created_at").eq("published",true).order("published_at",{ascending:false}).limit(20)
+          supabase.from("announcements").select("id,title,body,audience,target_state,published_at,created_at").eq("published",true).order("published_at",{ascending:false}).limit(20),
+          supabase.from("task_submissions").select("id,status,points_awarded").eq("user_id",user.id),
+          supabase.from("event_attendance").select("id,checked_in_at,points_awarded").eq("user_id",user.id),
+          supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id)
         ]);
         if(memberResult.error)throw memberResult.error;
         if(active)setMember(memberResult.data as Member|null);
         if(active&&!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
+        if(active){
+          const tasks=taskResult.error?[]:taskResult.data||[];
+          const attendance=attendanceResult.error?[]:attendanceResult.data||[];
+          const referrals=referralResult.error?[]:referralResult.data||[];
+          setStats({
+            points:tasks.reduce((sum,row)=>sum+(row.status==="approved"?Number(row.points_awarded||0):0),0)+attendance.reduce((sum,row)=>sum+(row.checked_in_at?Number(row.points_awarded||0):0),0),
+            tasks:tasks.filter(row=>row.status==="approved").length,
+            events:attendance.filter(row=>Boolean(row.checked_in_at)).length,
+            referrals:referrals.length,
+            verifiedReferrals:referrals.filter(row=>row.status==="verified").length
+          });
+        }
       }catch(e){if(active)setError(e instanceof Error?e.message:"Unable to load your membership.");}
       finally{if(active)setBusy(false);}
     })();
@@ -46,6 +62,7 @@ export default function MemberHome() {
         {busy?<p>Loading your membership details…</p>:error?<div className="form-message form-error">{error}</div>:!member?<p>No membership record was found for this account.</p>:<>
           <p>Welcome, {member.full_name}. Here is your current membership record.</p>
           <div className="member-programme-link"><Link href="/programmes">Explore events, welfare, volunteer tasks and support groups →</Link></div><div className="member-summary" id="profile"><small>MEMBERSHIP NUMBER</small><h2>{member.member_number}</h2><p><strong>Status:</strong> <span className={"status status-"+member.status}>{member.status.toUpperCase()}</span></p><p><strong>Location:</strong> {member.lga}, {member.state}</p>{member.ward&&<p><strong>Ward:</strong> {member.ward}</p>}</div>
+          <section className="member-activity" aria-label="Your participation summary"><div><small>RECOGNITION POINTS</small><strong>{stats.points.toLocaleString("en-NG")}</strong><span>Verified participation</span></div><div><small>COMPLETED TASKS</small><strong>{stats.tasks}</strong><span>Approved submissions</span></div><div><small>EVENTS ATTENDED</small><strong>{stats.events}</strong><span>Confirmed check-ins</span></div><div><small>REFERRALS</small><strong>{stats.referrals}</strong><span>{stats.verifiedReferrals} verified</span></div></section>
           <section className="member-announcements" id="announcements"><div className="member-section-head"><div><small>OFFICIAL UPDATES</small><h2>Announcements</h2></div><span>{announcements.length} updates</span></div>
             {announcements.length===0?<p className="no-announcements">There are no new announcements at the moment.</p>:announcements.map(item=><article key={item.id}><div className="announcement-date">{new Date(item.published_at||item.created_at).toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"})}</div><h3>{item.title}</h3><p>{item.body}</p>{item.audience==="state"&&item.target_state&&<small>For members in {item.target_state}</small>}</article>)}
           </section>
@@ -76,6 +93,7 @@ export default function MemberHome() {
         .member-navigation{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:0 0 26px;padding:13px;background:#f5f8f4;border:1px solid #e7ede5;border-radius:12px}
         .member-navigation a{display:flex;align-items:center;justify-content:center;min-height:42px;padding:10px 12px;border-radius:8px;background:#fff;color:#315b43;font-size:11px;font-weight:700;text-decoration:none;border:1px solid #e5ebe4;transition:background .18s,border-color .18s,color .18s}
         .member-navigation a:hover{background:#176b47;color:white;border-color:#176b47}
+        .member-activity{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.member-activity>div{padding:17px;border:1px solid #e5ece3;border-radius:10px;background:#fff}.member-activity small,.member-activity strong,.member-activity span{display:block}.member-activity small{font-size:8px;letter-spacing:1px;color:#738278;font-weight:800}.member-activity strong{font-size:26px;color:#176b47;margin:9px 0 4px}.member-activity span{font-size:9px;color:#87948b}
         .member-programme-link{margin-top:18px}.member-programme-link a{display:block;padding:15px 18px;border-radius:9px;background:#176b47;color:white;font-size:12px;font-weight:700}
         .member-summary{background:#f3f7f1;border:1px solid #e5ece3;padding:23px;margin-top:22px;border-radius:12px}
         .member-summary small{color:#607269;letter-spacing:1px;font-size:9px}.member-summary h2{font-size:29px;margin:8px 0 18px;color:#176b47}.status{font-weight:800}.status-approved{color:#176b47}.status-pending{color:#9a6b13}.status-rejected,.status-suspended{color:#a33}
@@ -84,7 +102,7 @@ export default function MemberHome() {
         .membership-note{margin-top:20px;padding:16px;background:#fff8e8;border-left:4px solid #c18a22;line-height:1.7}.membership-card-section{margin-top:30px}.membership-card{color:#fff;background:linear-gradient(125deg,#073c2a,#116443 58%,#d0a84c);border-radius:16px;padding:24px;min-height:250px;box-shadow:0 12px 30px #102d1a24;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;max-width:700px}
         .card-top{display:flex;align-items:center;gap:12px}.card-emblem{width:44px;height:44px;border:2px solid #e6c66f;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#f2d78a}.card-top strong,.card-top small{display:block}.card-top strong{font-size:13px;letter-spacing:1px}.card-top small{font-size:9px;opacity:.8;margin-top:4px;letter-spacing:1px}.card-approved{margin-left:auto;font-size:9px;letter-spacing:1px;border:1px solid #e6c66f;color:#ffe7a3;padding:6px 8px;border-radius:20px}
         .card-main{display:flex;gap:18px;align-items:center;margin:26px 0}.card-avatar{width:78px;height:94px;border:1px solid #ffffff88;border-radius:8px;display:grid;place-items:center;font-weight:800;color:#f2d78a;background:#ffffff12}.card-details small{display:block;font-size:8px;letter-spacing:1.5px;opacity:.8}.card-details h2{font-size:20px;margin:5px 0 12px}.card-details strong{display:block;font-size:14px;letter-spacing:1px;margin-top:4px}.card-location{font-size:11px;margin-top:9px;opacity:.9}.card-bottom{border-top:1px solid #ffffff55;padding-top:12px;display:flex;justify-content:space-between;gap:8px;font-size:8px;letter-spacing:1px}.print-card{margin-top:16px;width:min(100%,700px)}.card-note{font-size:12px;color:#607269}
-        @media(max-width:760px){.member-dashboard-shell{padding:12px 10px 35px}.member-space{padding:20px 15px;border-radius:13px}.member-heading{display:block}.member-portal-tag{display:inline-block;margin-top:13px}.member-navigation{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px}.member-navigation a{font-size:10px;min-height:40px;padding:8px}.card-main{gap:12px}.card-details h2{font-size:17px}.card-top strong{font-size:10px}}
+        @media(max-width:760px){.member-activity{grid-template-columns:repeat(2,minmax(0,1fr))}.member-dashboard-shell{padding:12px 10px 35px}.member-space{padding:20px 15px;border-radius:13px}.member-heading{display:block}.member-portal-tag{display:inline-block;margin-top:13px}.member-navigation{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px}.member-navigation a{font-size:10px;min-height:40px;padding:8px}.card-main{gap:12px}.card-details h2{font-size:17px}.card-top strong{font-size:10px}}
         @media print{@page{size:landscape;margin:10mm}body *{visibility:hidden!important}#nyfb-membership-card,#nyfb-membership-card *{visibility:visible!important}#nyfb-membership-card{position:absolute;left:0;top:0;width:90mm;min-height:57mm;box-shadow:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}}
       `}</style>   </main>
   );
