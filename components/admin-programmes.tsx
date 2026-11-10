@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 
 type EventItem={id:string;title:string;starts_at:string;state:string|null;lga:string|null;status:string;venue:string|null;attendance_points:number};
 type TaskItem={id:string;title:string;points:number;state:string|null;lga:string|null;status:string};
-type ReviewItem={id:string;status:string;state:string;lga:string;ward:string|null;created_at:string;[key:string]:any};
+type ReviewItem={id:string;status:string;state?:string|null;lga?:string|null;ward?:string|null;created_at?:string;[key:string]:any};
 type Tab="events"|"attendance"|"tasks"|"submissions"|"groups"|"welfare"|"campus";
 const date=(v:string)=>new Date(v).toLocaleString("en-NG",{dateStyle:"medium",timeStyle:"short"});
 
