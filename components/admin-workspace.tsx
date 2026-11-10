@@ -119,8 +119,13 @@ export default function AdminWorkspace(){
    <Link href="/" className="ny-brand"><span className="ny-mark">NY</span><span><b>NYFB</b><small>ADMINISTRATION</small></span></Link>
    <div className="ny-side-caption">MAIN WORKSPACE</div>
    <nav>{nav.map(item=><button key={item.id} className={tab===item.id?"active":""} onClick={()=>{setTab(item.id);setNotice("");setError("");}}><span>{item.icon}</span>{item.label}{item.id==="members"&&counts.pending>0?<i>{counts.pending}</i>:null}</button>)}</nav>
-   <Link href="/admin/programmes" className="ny-programme-link">▣ Programme management <span>→</span></Link>
-   <Link href="/#about" className="ny-programme-link">ⓘ About NYFB <span>→</span></Link>\n   <Link href="/forgot-password" className="ny-programme-link">⚙ Account settings <span>→</span></Link>\n   <a href="mailto:nigerianyouthforbat@gmail.com" className="ny-programme-link">? Help &amp; support <span>→</span></a>
+   <div className="ny-side-caption ny-side-group">PROGRAMME OPERATIONS</div>
+   <Link href="/admin/programmes" className="ny-programme-link"><span className="ny-link-icon">▣</span><span className="ny-link-label">Programme management</span><b>→</b></Link>
+   {isNationalAdmin&&<Link href="/admin/coordinators" className="ny-programme-link"><span className="ny-link-icon">♙</span><span className="ny-link-label">Coordinator management</span><b>→</b></Link>}
+   <div className="ny-side-caption ny-side-group">ORGANISATION &amp; ACCOUNT</div>
+   <Link href="/#about" className="ny-programme-link"><span className="ny-link-icon">ⓘ</span><span className="ny-link-label">About NYFB</span><b>→</b></Link>
+   <Link href="/forgot-password" className="ny-programme-link"><span className="ny-link-icon">⚙</span><span className="ny-link-label">Account settings</span><b>→</b></Link>
+   <a href="mailto:nigerianyouthforbat@gmail.com" className="ny-programme-link"><span className="ny-link-icon">?</span><span className="ny-link-label">Help &amp; support</span><b>→</b></a>
    <div className="ny-side-bottom"><div className="ny-user-avatar">NY</div><div><b>NYFB Workspace</b><small>{role.replaceAll("_"," ")} access</small></div><button aria-label="Sign out" onClick={signOut}>↗</button></div>
   </aside>
   <section className="ny-main">
