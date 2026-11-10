@@ -17,7 +17,7 @@ export default function JoinForm(){
    }}});
    if(error)throw error;
    setMessage({text:"Your account and membership application have been submitted. Check your email for a confirmation link. Your NYFB membership number is generated automatically."});
-   event.currentTarget.reset();
+   formElement.reset();
   }catch(e){setMessage({text:e instanceof Error?e.message:"Registration could not be completed. Please try again.",error:true});}
   finally{setBusy(false);}
  }
