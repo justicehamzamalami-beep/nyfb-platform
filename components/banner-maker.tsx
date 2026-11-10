@@ -25,7 +25,7 @@ export default function BannerMaker(){
   ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1350);
   ctx.strokeStyle="rgba(222,194,113,.35)";ctx.lineWidth=3;
   for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(940,180,150+i*90,0,Math.PI*2);ctx.stroke();}
-  ctx.fillStyle="#d5bd75";ctx.font="bold 28px Arial";ctx.letterSpacing="8px";ctx.fillText("NIGERIAN YOUTH FOR BAT",90,115);
+  ctx.fillStyle="#d5bd75";ctx.font="bold 28px Arial";ctx.fillText("NIGERIAN YOUTH FOR BAT",90,115);
   ctx.fillStyle="#ffffff";ctx.font="900 104px Arial";ctx.fillText("I AM",90,310);ctx.fillStyle="#d7c27c";ctx.fillText("NYFB",90,425);
   ctx.fillStyle="#e9f0e9";ctx.font="32px Arial";ctx.fillText("UNITED IN PURPOSE. CONNECTED FOR IMPACT.",90,490);
   ctx.fillStyle="rgba(255,255,255,.12)";ctx.beginPath();ctx.roundRect(90,570,900,520,28);ctx.fill();
