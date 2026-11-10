@@ -40,7 +40,8 @@ export default function AdminProgrammes(){
    supabase.from("task_submissions").select("id,task_id,user_id,submission_note,evidence_url,status,created_at,volunteer_tasks(title,points,state,lga)").order("created_at",{ascending:false}).limit(100),
    supabase.from("support_groups").select("id,group_name,category,contact_name,contact_phone,state,lga,ward,status,created_at").order("created_at",{ascending:false}).limit(100),
    supabase.from("welfare_applications").select("id,programme,household_size,phone,address,state,lga,needs_summary,status,created_at").order("created_at",{ascending:false}).limit(100),
-   supabase.from("campus_mobilizers").select("id,institution,institution_type,state,status,created_at,referral_code").order("created_at",{ascending:false}).limit(100)
+   supabase.from("campus_mobilizers").select("id,institution,institution_type,state,status,created_at,referral_code").order("created_at",{ascending:false}).limit(100),
+   supabase.from("event_attendance").select("id,event_id,user_id,rsvped_at,checked_in_at,points_awarded,events(title,attendance_points)").order("rsvped_at",{ascending:false}).limit(500)
   ]);
   if(p.error){setError(p.error.message);setBusy(false);return;}
   const assignments=a.data||[];
