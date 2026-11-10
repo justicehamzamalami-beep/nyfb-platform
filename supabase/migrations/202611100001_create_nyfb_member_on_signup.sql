@@ -19,6 +19,9 @@ begin
 end;
 $$;
 revoke all on function private.handle_new_nyfb_user() from public, anon, authenticated;
+drop trigger if exists on_auth_user_created on auth.users;
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+alter function public.set_updated_at() set search_path = '';
 drop trigger if exists on_auth_user_created_nyfb on auth.users;
 create trigger on_auth_user_created_nyfb after insert on auth.users
 for each row execute function private.handle_new_nyfb_user();
