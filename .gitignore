@@ -8,3 +8,6 @@ build
 .vercel
 .DS_Store
 *.tsbuildinfo
+.open-next
+.wrangler
+.dev.vars
