@@ -175,3 +175,24 @@ export default function AdminWorkspace(){
   `}</style>
  </main>;
 }
+   .ny-sidebar{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#ffffff35 transparent}
+   .ny-side-group{margin-top:20px!important;padding:16px 12px 9px!important;border-top:1px solid #ffffff1c}
+   .ny-programme-link{justify-content:flex-start!important;gap:10px!important;margin:5px 2px 0!important;padding:11px 10px!important;border:1px solid transparent!important}
+   .ny-programme-link:hover{background:#ffffff12!important;border-color:#ffffff25!important}
+   .ny-programme-link .ny-link-icon{width:20px;text-align:center;color:#c6df7b!important;font-size:14px}
+   .ny-programme-link .ny-link-label{flex:1;color:#d8e5dc!important}
+   .ny-programme-link b{font-size:13px;color:#c6df7b}
+   .ny-sidebar nav{margin-bottom:0!important}
+   .ny-sidebar nav button{min-height:44px}
+   @media(max-width:1050px){.ny-sidebar{width:245px}}
+   @media(max-width:680px){
+    .ny-sidebar{position:relative;width:100%;height:auto;min-height:0;padding:14px 14px 12px;overflow:visible}
+    .ny-side-caption,.ny-side-bottom,.ny-sidebar .ny-side-group{display:none!important}
+    .ny-sidebar .ny-programme-link{display:inline-flex!important;width:calc(50% - 8px);vertical-align:top;margin:5px 3px 0!important;padding:9px 8px!important;font-size:9px}
+    .ny-sidebar .ny-link-icon{width:14px}
+    .ny-sidebar .ny-link-label{font-size:9px}
+    .ny-sidebar nav{display:flex;overflow-x:auto;gap:4px;padding-bottom:7px}
+    .ny-sidebar nav button{width:auto;min-width:max-content;padding:10px}
+    .ny-topbar{position:sticky;top:0;z-index:5}
+   }
+
