@@ -185,8 +185,7 @@ export default function MemberHome() {
                 </div>
                 <div className="card-bottom"><span><b>NYFB</b> · APC AMBASSADOR</span><span>{member.reviewed_at?"ISSUED "+new Date(member.reviewed_at).toLocaleDateString("en-NG"):"OFFICIAL RECORD"}</span></div>
               </div>
-              <button className="btn print-card" onClick={emailMembershipCard} disabled={sendingCard}>{sendingCard?"Sending ID card…":"Send ID card to my Gmail"}</button>
-              <p className="card-note" role="status">{cardEmailMessage||"Your digital membership card will be sent to the email address linked to your NYFB account."}</p>
+
             </section>
           ):<p className="membership-note">{member.status==="pending"?"Your application is awaiting review. Your official membership card will become available here once it is approved.":member.status==="rejected"?"Your application was not approved. Please contact your NYFB coordinator for further guidance.":"Your membership is currently suspended. Please contact the NYFB administration for assistance."}</p>}
         </>}
