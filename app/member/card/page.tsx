@@ -1,2 +1,2 @@
-import MemberSection from "@/components/member-section";
-export default function Page(){return <MemberSection section="card"/>;}
+import {redirect} from "next/navigation";
+export default function Page(){redirect("/member/profile");}
