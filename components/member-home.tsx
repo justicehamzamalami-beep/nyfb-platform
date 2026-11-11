@@ -252,14 +252,14 @@ export default function MemberHome() {
         .membership-card .card-location{font-size:9px!important;margin-top:8px!important}
         .membership-card .card-bottom{position:relative!important;z-index:1!important;border-top:1px solid #d5b75b88!important;padding-top:9px!important;font-size:6px!important;letter-spacing:.4px!important}
         @media(max-width:620px){
-          .membership-card{aspect-ratio:auto!important;min-height:230px!important;padding:15px!important}
-          .membership-card .card-top{grid-template-columns:44px minmax(0,1fr)!important;gap:9px!important}
-          .membership-card .card-emblem{width:44px!important;height:44px!important;flex-basis:44px!important}
-          .membership-card .card-top strong{font-size:10px!important}
-          .membership-card .card-top small{font-size:6px!important}
-          .membership-card .card-approved{grid-column:2!important;justify-self:start!important;padding:5px 7px!important;font-size:6px!important}
-          .membership-card .card-main{grid-template-columns:74px minmax(0,1fr)!important;gap:12px!important;margin:14px 0!important}
-          .membership-card .card-avatar{width:74px!important;height:94px!important}
+          .membership-card{width:min(100%,360px)!important;aspect-ratio:54/85.6!important;min-height:0!important;padding:18px!important}
+          .membership-card .card-top{display:flex!important;flex-direction:column!important;gap:8px!important}
+          .membership-card .card-emblem,.membership-card .apc-emblem{width:44px!important;height:44px!important;flex-basis:44px!important}
+          .membership-card .card-brand-copy strong{font-size:12px!important}
+          .membership-card .card-brand-copy small{font-size:6px!important}
+          .membership-card .card-approved{margin:0!important;padding:5px 7px!important;font-size:6px!important}
+          .membership-card .card-main{display:flex!important;flex-direction:column!important;gap:8px!important;margin:0!important}
+          .membership-card .card-avatar{width:80px!important;height:88px!important;flex-basis:88px!important}
           .membership-card .card-details h2{font-size:15px!important}
           .membership-card .card-bottom{font-size:6px!important;gap:6px!important}
         }
