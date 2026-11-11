@@ -114,7 +114,7 @@ export default function MemberHome() {
 
   async function copyReferralLink(){
     if(!member?.referral_code)return;
-    const link=window.location.origin+"/join?ref="+member.referral_code;
+    const link="https://nyfb-platform.justicehamzamalami.workers.dev/join?ref="+member.referral_code;
     try{
       if(navigator.clipboard&&window.isSecureContext){
         await navigator.clipboard.writeText(link);
