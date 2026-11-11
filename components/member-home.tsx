@@ -189,14 +189,14 @@ export default function MemberHome() {
         <div className="member-dashboard-layout">
           <aside className={"member-sidebar"+(menuOpen?" is-open":"")} id="member-sidebar">
             <div className="sidebar-label">MEMBER MENU</div>
-            <a href="#dashboard" onClick={()=>setMenuOpen(false)}><span>⌂</span> Overview</a>
-            <a href="#profile" onClick={()=>setMenuOpen(false)}><span>◉</span> My profile</a>
-            <a href="#membership-card" onClick={()=>setMenuOpen(false)}><span>▣</span> Membership card</a>
-            <a href="#rewards" onClick={()=>setMenuOpen(false)}><span>₦</span> Rewards &amp; referrals</a>
+            <Link href="/member" onClick={()=>setMenuOpen(false)}><span>⌂</span> Overview</Link>
+            <Link href="/member/profile" onClick={()=>setMenuOpen(false)}><span>◉</span> My profile</Link>
+            <Link href="/member/card" onClick={()=>setMenuOpen(false)}><span>▣</span> Membership card</Link>
+            <Link href="/member/rewards" onClick={()=>setMenuOpen(false)}><span>₦</span> Rewards &amp; referrals</Link>
             <Link href="/programmes" onClick={()=>setMenuOpen(false)}><span>▤</span> Programmes &amp; events</Link>
-            <a href="#announcements" onClick={()=>setMenuOpen(false)}><span>◷</span> Announcements</a>
-            <Link href="/forgot-password" onClick={()=>setMenuOpen(false)}><span>⚙</span> Account settings</Link>
-            <a href="mailto:nigerianyouthforbat@gmail.com" onClick={()=>setMenuOpen(false)}><span>✉</span> Help &amp; support</a>
+            <Link href="/member/announcements" onClick={()=>setMenuOpen(false)}><span>◷</span> Announcements</Link>
+            <Link href="/member/settings" onClick={()=>setMenuOpen(false)}><span>⚙</span> Account settings</Link>
+            <Link href="/member/support" onClick={()=>setMenuOpen(false)}><span>✉</span> Help &amp; support</Link>
             <div className="sidebar-footer">NIGERIAN YOUTH FOR BAT<br/><small>MEMBER PORTAL</small></div>
           </aside>
           <div className="member-main-content">
