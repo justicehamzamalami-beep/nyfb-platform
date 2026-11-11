@@ -63,7 +63,7 @@ export default function AdminWorkspace(){
   setProgrammeCounts({events:eventsResult.data?.length||0,tasks:tasksResult.data?.length||0,groups:groupsResult.data?.length||0,welfare:welfareResult.data?.length||0,campus:campusResult.data?.length||0,attendance:attendanceResult.data?.length||0});
   setLoading(false);
  }
- useEffect(()=>{void load();},[]);
+ useEffect(()=>{void load();const channel=supabase.channel("nyfb-admin-live").on("postgres_changes",{event:"*",schema:"public",table:"members"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"announcements"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"audit_logs"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"events"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"volunteer_tasks"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"event_attendance"},()=>{void load();}).subscribe();return()=>{void supabase.removeChannel(channel);};},[]);
 
  const counts={all:members.length,pending:members.filter(m=>m.status==="pending").length,approved:members.filter(m=>m.status==="approved").length,rejected:members.filter(m=>m.status==="rejected").length,suspended:members.filter(m=>m.status==="suspended").length};
  const visible=members.filter(m=>(filter==="all"||m.status===filter)&&[m.full_name,m.member_number,m.email||"",m.phone,m.state,m.lga,m.ward||""].join(" ").toLowerCase().includes(search.toLowerCase()));
