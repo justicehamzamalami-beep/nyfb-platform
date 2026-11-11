@@ -67,7 +67,6 @@ const sectors=["All sectors",...Array.from(new Set(projects.map(p=>p.sector)))];
 export default function ProjectsPage(){
  const [sector,setSector]=useState("All sectors"); const [query,setQuery]=useState("");
  const visible=useMemo(()=>projects.filter(p=>(sector==="All sectors"||p.sector===sector)&&[p.title,p.location,p.description,p.status].join(" ").toLowerCase().includes(query.toLowerCase())),[sector,query]);
- const completed=projects.filter(p=>/commissioned|inaugurated|enacted|expanded, renovated and re-equipped|completed/i.test(p.status)).length;
  return <main className="projects-page">
  <header className="top"><Link href="/" className="brand"><span className="mark">NYFB</span><span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span></Link><nav><Link href="/">Home</Link><Link href="/login">Member login</Link><Link href="/join" className="join">Join NYFB ↗</Link></nav></header>
  <section className="hero"><div className="eyebrow">PUBLIC PROJECTS &amp; PROGRAMMES · NATIONAL RECORD</div><h1>Projects and programmes<br/><em>across Nigeria.</em></h1><p>A documented overview of selected federal infrastructure, health, education, energy, transport and youth-development initiatives associated with the administration of President Bola Ahmed Tinubu, from May 2023 onward.</p><div className="stats"><div><strong>50</strong><span>PROJECT ENTRIES</span></div><div><strong>6</strong><span>SECTOR GROUPS</span></div><div><strong>2023–2026</strong><span>PERIOD COVERED</span></div></div></section>
