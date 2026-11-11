@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 type Member = { id:string; member_number:string; full_name:string; email:string|null; phone:string; state:string; lga:string; ward:string|null; status:string; submitted_at:string; rejection_reason:string|null };
+type BankAccount = {user_id:string;bank_name:string;account_number:string;account_name:string;verification_status:string;submitted_at:string};
 type Assignment = { role:string; state:string|null; lga:string|null; ward:string|null };
 type Announcement = { id:string; title:string; body:string; audience:string; target_state:string|null; published:boolean; published_at:string|null; created_at:string };
 type Activity = { id:number; actor_id:string|null; action:string; entity_type:string; entity_id:string|null; details:Record<string,unknown>; created_at:string };
@@ -16,6 +17,8 @@ const initialForm = {title:"",body:"",audience:"all",target_state:""};
 
 export default function AdminWorkspace(){
  const [members,setMembers]=useState<Member[]>([]);
+ const [bankAccounts,setBankAccounts]=useState<BankAccount[]>([]);
+ const [selectedIds,setSelectedIds]=useState<string[]>([]);
  const [announcements,setAnnouncements]=useState<Announcement[]>([]);
  const [activity,setActivity]=useState<Activity[]>([]);
  const [programmeCounts,setProgrammeCounts]=useState({events:0,tasks:0,groups:0,welfare:0,campus:0,attendance:0});
@@ -37,7 +40,7 @@ export default function AdminWorkspace(){
   setLoading(true);setError("");
   const {data:{user},error:authError}=await supabase.auth.getUser();
   if(authError||!user){window.location.assign("/login");return;}
-  const [profileResult,assignmentResult,memberResult,announcementResult,activityResult,eventsResult,tasksResult,groupsResult,welfareResult,campusResult,attendanceResult]=await Promise.all([
+  const [profileResult,assignmentResult,memberResult,announcementResult,activityResult,eventsResult,tasksResult,groupsResult,welfareResult,campusResult,attendanceResult,bankResult]=await Promise.all([
    supabase.from("profiles").select("role").eq("id",user.id).single(),
    supabase.from("coordinator_assignments").select("role,state,lga,ward").eq("user_id",user.id),
    supabase.from("members").select("id,member_number,full_name,email,phone,state,lga,ward,status,submitted_at,rejection_reason").order("submitted_at",{ascending:false}).limit(1000),
@@ -48,7 +51,8 @@ export default function AdminWorkspace(){
    supabase.from("support_groups").select("id,status"),
    supabase.from("welfare_applications").select("id,status"),
    supabase.from("campus_mobilizers").select("id,status"),
-   supabase.from("event_attendance").select("id")
+   supabase.from("event_attendance").select("id"),
+   supabase.from("member_bank_accounts").select("user_id,bank_name,account_number,account_name,verification_status,submitted_at").order("submitted_at",{ascending:false}).limit(1000)
   ]);
   if(profileResult.error){setError(profileResult.error.message);setLoading(false);return;}
   const pRole=profileResult.data?.role||"member";
@@ -58,6 +62,7 @@ export default function AdminWorkspace(){
   if(!allowed.includes(effectiveRole)){setError("Your account does not have coordinator or national administrator access.");setMembers([]);}
   else if(memberResult.error){setError(memberResult.error.message);}
   else setMembers((memberResult.data||[]) as Member[]);
+  if(!bankResult.error)setBankAccounts((bankResult.data||[]) as BankAccount[]);
   if(!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
   if(!activityResult.error)setActivity((activityResult.data||[]) as Activity[]);
   setProgrammeCounts({events:eventsResult.data?.length||0,tasks:tasksResult.data?.length||0,groups:groupsResult.data?.length||0,welfare:welfareResult.data?.length||0,campus:campusResult.data?.length||0,attendance:attendanceResult.data?.length||0});
@@ -70,6 +75,8 @@ export default function AdminWorkspace(){
  const recentMembers=members.slice(0,5);
  const publishedCount=announcements.filter(a=>a.published).length;
  const pendingCount=announcements.filter(a=>!a.published).length;
+ const visiblePending=visible.filter(m=>m.status==="pending");
+ const allVisiblePendingSelected=visiblePending.length>0&&visiblePending.every(m=>selectedIds.includes(m.id));
 
  async function decide(member:Member,status:"approved"|"rejected"|"suspended"){
   let reason:string|null=null;
@@ -88,6 +95,31 @@ export default function AdminWorkspace(){
   setBusy("");
  }
 
+ async function approveSelected(){
+  const ids=selectedIds.filter(id=>visiblePending.some(m=>m.id===id));
+  if(!ids.length){setNotice("Select at least one pending application.");return;}
+  if(!window.confirm("Approve "+ids.length+" selected application(s)?"))return;
+  setSaving(true);setError("");setNotice("");
+  const {data:{user}}=await supabase.auth.getUser();
+  if(!user){setError("Your session has expired. Please sign in again.");setSaving(false);return;}
+  const {data:updated,error:updateError}=await supabase.from("members").update({status:"approved",reviewed_at:new Date().toISOString(),reviewed_by:user.id,rejection_reason:null}).in("id",ids).eq("status","pending").select("id,member_number");
+  if(updateError){setError(updateError.message);setSaving(false);return;}
+  const approved=(updated||[]) as {id:string;member_number:string}[];
+  const emailResults=await Promise.all(approved.map(async item=>{
+   const {error:emailError,data}=await supabase.functions.invoke("send-member-status-email",{body:{member_id:item.id,status:"approved",reason:null}});
+   return Boolean(emailError||data?.error);
+  }));
+  setSelectedIds([]);
+  setNotice(approved.length+" application(s) approved. "+emailResults.filter(Boolean).length+" notification email(s) could not be sent.");
+  await load();setSaving(false);
+ }
+ async function setBankVerification(item:BankAccount,status:"verified"|"rejected"){
+  setBusy(item.user_id);setError("");setNotice("");
+  const {error:updateError}=await supabase.from("member_bank_accounts").update({verification_status:status}).eq("user_id",item.user_id);
+  if(updateError)setError(updateError.message);
+  else {setNotice("Bank details marked "+status+".");await load();}
+  setBusy("");
+ }
  async function createAnnouncement(event:FormEvent<HTMLFormElement>){
   event.preventDefault();setSaving(true);setError("");setNotice("");
   const {data:{user}}=await supabase.auth.getUser();
@@ -158,7 +190,7 @@ export default function AdminWorkspace(){
       </div>
       <section className="ny-panel ny-coverage"><div className="ny-panel-head"><div><h2>Membership status</h2><p>Current distribution of registered applications</p></div></div><div className="ny-progress-list">{[["Approved",counts.approved,"approved"],["Pending",counts.pending,"pending"],["Rejected",counts.rejected,"rejected"],["Suspended",counts.suspended,"suspended"]].map(([label,value,key])=><div className="ny-progress-row" key={key as string}><span>{label}</span><div><i className={key as string} style={{width:(counts.all?Number(value)/counts.all*100:0)+"%"}}/></div><b>{value}</b></div>)}</div></section>
      </div>}
-     {tab==="members"&&<div className="ny-view"><div className="ny-filter-cards">{(["all","pending","approved","rejected","suspended"] as const).map(k=><button key={k} className={filter===k?"selected":""} onClick={()=>setFilter(k)}><small>{k.toUpperCase()}</small><b>{counts[k]}</b></button>)}</div><section className="ny-panel"><div className="ny-panel-head ny-member-toolbar"><div><h2>Member directory</h2><p>{visible.length} records match your current view</p></div><div className="ny-search-tools"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name, ID, phone, email or location…"/><button onClick={exportMembers}>↓ Export CSV</button></div></div><div className="ny-table-wrap"><table><thead><tr><th>MEMBER DETAILS</th><th>CONTACT</th><th>LOCATION</th><th>DATE</th><th>STATUS</th><th>ACTION</th></tr></thead><tbody>{visible.map(m=><tr key={m.id}><td><b>{m.full_name}</b><small>{m.member_number}</small></td><td>{m.phone}<small>{m.email||"No email provided"}</small></td><td>{m.ward?m.ward+", ":""}{m.lga}, {m.state}</td><td>{date(m.submitted_at)}</td><td><span className={"ny-status "+m.status}>{m.status}</span></td><td><div className="ny-actions">{m.status==="pending"?<><button disabled={busy===m.id} onClick={()=>void decide(m,"approved")}>Approve</button><button className="danger" disabled={busy===m.id} onClick={()=>void decide(m,"rejected")}>Reject</button></>:m.status==="approved"?<button className="danger" disabled={busy===m.id} onClick={()=>void decide(m,"suspended")}>Suspend</button>:<span className="ny-muted">—</span>}</div></td></tr>)}</tbody></table>{visible.length===0&&<div className="ny-empty">No members match this search.</div>}</div></section></div>}
+     {tab==="members"&&<div className="ny-view"><div className="ny-filter-cards">{(["all","pending","approved","rejected","suspended"] as const).map(k=><button key={k} className={filter===k?"selected":""} onClick={()=>setFilter(k)}><small>{k.toUpperCase()}</small><b>{counts[k]}</b></button>)}</div><section className="ny-panel"><div className="ny-panel-head ny-member-toolbar"><div><h2>Member directory</h2><p>{visible.length} records match your current view</p></div><div className="ny-search-tools"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name, ID, phone, email or location…"/><button onClick={exportMembers}>↓ Export CSV</button></div></div>{filter==="pending"&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",margin:"0 0 14px"}}><label style={{fontSize:11,display:"flex",alignItems:"center",gap:8}}><input type="checkbox" checked={allVisiblePendingSelected} onChange={e=>setSelectedIds(e.target.checked?Array.from(new Set([...selectedIds,...visiblePending.map(x=>x.id)])):selectedIds.filter(id=>!visiblePending.some(x=>x.id===id)))} /> Select all visible pending applications</label><button className="ny-primary" disabled={saving||selectedIds.length===0} onClick={()=>void approveSelected()}>{saving?"Approving…":"Approve selected ("+selectedIds.filter(id=>visiblePending.some(x=>x.id===id)).length+")"}</button></div>}<div className="ny-table-wrap"><table><thead><tr><th>SELECT</th><th>MEMBER DETAILS</th><th>CONTACT</th><th>LOCATION</th><th>DATE</th><th>STATUS</th><th>ACTION</th></tr></thead><tbody>{visible.map(m=><tr key={m.id}><td>{m.status==="pending"?<input type="checkbox" aria-label={"Select "+m.full_name} checked={selectedIds.includes(m.id)} onChange={e=>setSelectedIds(prev=>e.target.checked?[...prev,m.id]:prev.filter(id=>id!==m.id))}/>:<span className="ny-muted">—</span>}</td><td><b>{m.full_name}</b><small>{m.member_number}</small></td><td>{m.phone}<small>{m.email||"No email provided"}</small></td><td>{m.ward?m.ward+", ":""}{m.lga}, {m.state}</td><td>{date(m.submitted_at)}</td><td><span className={"ny-status "+m.status}>{m.status}</span></td><td><div className="ny-actions">{m.status==="pending"?<><button disabled={busy===m.id} onClick={()=>void decide(m,"approved")}>Approve</button><button className="danger" disabled={busy===m.id} onClick={()=>void decide(m,"rejected")}>Reject</button></>:m.status==="approved"?<button className="danger" disabled={busy===m.id} onClick={()=>void decide(m,"suspended")}>Suspend</button>:<span className="ny-muted">—</span>}</div></td></tr>)}</tbody></table>{visible.length===0&&<div className="ny-empty">No members match this search.</div>}</div></section><section className="ny-panel"><div className="ny-panel-head"><div><h2>Submitted bank details</h2><p>Restricted financial information · {bankAccounts.length} submission(s)</p></div></div><div className="ny-table-wrap"><table><thead><tr><th>USER ID</th><th>BANK</th><th>ACCOUNT NUMBER</th><th>ACCOUNT NAME</th><th>VERIFICATION</th><th>ACTION</th></tr></thead><tbody>{bankAccounts.map(item=><tr key={item.user_id}><td><small>{item.user_id}</small></td><td>{item.bank_name}</td><td>{item.account_number}</td><td>{item.account_name}</td><td><span className={"ny-status "+(item.verification_status==="verified"?"approved":item.verification_status==="rejected"?"rejected":"pending")}>{item.verification_status}</span></td><td><div className="ny-actions"><button disabled={busy===item.user_id} onClick={()=>void setBankVerification(item,"verified")}>Verify</button><button className="danger" disabled={busy===item.user_id} onClick={()=>void setBankVerification(item,"rejected")}>Reject</button></div></td></tr>)}</tbody></table>{bankAccounts.length===0&&<div className="ny-empty">No bank details have been submitted yet.</div>}</div></section></div>}
      {tab==="announcements"&&<div className="ny-view"><div className="ny-stats ny-ann-stats"><article className="ny-stat"><div className="ny-stat-top"><span>Total updates</span><b>▤</b></div><strong>{announcements.length}</strong><small>Saved announcements</small></article><article className="ny-stat green"><div className="ny-stat-top"><span>Published</span><b>✓</b></div><strong>{publishedCount}</strong><small>Visible to selected audiences</small></article><article className="ny-stat warm"><div className="ny-stat-top"><span>Drafts</span><b>◷</b></div><strong>{pendingCount}</strong><small>Not yet published</small></article></div>
       {isNationalAdmin&&<section className="ny-panel ny-compose"><div className="ny-panel-head"><div><h2>Create an announcement</h2><p>Draft first, review, then publish when ready.</p></div><span className="ny-draft-label">NEW DRAFT</span></div><form onSubmit={createAnnouncement}><label>Announcement title<input required maxLength={140} value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="e.g. National membership registration update"/></label><label>Message<textarea required rows={5} value={form.body} onChange={e=>setForm({...form,body:e.target.value})} placeholder="Write the official announcement…"/></label><div className="ny-form-row"><label>Audience<select value={form.audience} onChange={e=>setForm({...form,audience:e.target.value})}><option value="all">Everyone</option><option value="members">All members</option><option value="coordinators">Coordinators</option><option value="state">Specific state</option></select></label>{form.audience==="state"&&<label>Target state<input required value={form.target_state} onChange={e=>setForm({...form,target_state:e.target.value})} placeholder="Enter state name"/></label>}<button disabled={saving} className="ny-primary" type="submit">{saving?"Saving…":"Save as draft →"}</button></div></form></section>}
       <section className="ny-panel"><div className="ny-panel-head"><div><h2>Broadcast library</h2><p>Manage saved announcements and publication status</p></div></div>{announcements.length===0?<div className="ny-empty">No announcements yet. Create your first draft above.</div>:<div className="ny-ann-list">{announcements.map(a=><article key={a.id}><div className="ny-ann-top"><span className={a.published?"ny-status approved":"ny-status pending"}>{a.published?"Published":"Draft"}</span><small>{date(a.created_at)}</small></div><h3>{a.title}</h3><p>{a.body}</p><div className="ny-ann-foot"><span>Audience: <b>{audienceLabel(a.audience)}{a.audience==="state"&&a.target_state?" · "+a.target_state:""}</b></span>{isNationalAdmin&&<div className="ny-actions">{a.published?<button className="secondary" disabled={busy===a.id} onClick={()=>void setAnnouncementPublished(a,false)}>Unpublish</button>:<button disabled={busy===a.id} onClick={()=>void setAnnouncementPublished(a,true)}>Publish</button>}<button className="danger" disabled={busy===a.id} onClick={()=>void deleteAnnouncement(a)}>Delete</button></div>}</div></article>)}</div>}</section>
