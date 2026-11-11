@@ -8,18 +8,22 @@ create table if not exists public.member_bank_accounts (
   updated_at timestamptz not null default now()
 );
 alter table public.member_bank_accounts enable row level security;
+drop policy if exists "Members can read own bank details" on public.member_bank_accounts;
 create policy "Members can read own bank details" on public.member_bank_accounts
  for select to authenticated using (user_id = (select auth.uid()));
+drop policy if exists "Authorised admins can read bank details" on public.member_bank_accounts;
 create policy "Authorised admins can read bank details" on public.member_bank_accounts
  for select to authenticated using (
    exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'national_admin')
    or exists (select 1 from public.coordinator_assignments ca where ca.user_id = (select auth.uid()) and ca.role in ('national_admin','state_coordinator','lga_coordinator','ward_coordinator'))
  );
+drop policy if exists "Approved members can insert own bank details" on public.member_bank_accounts;
 create policy "Approved members can insert own bank details" on public.member_bank_accounts
  for insert to authenticated with check (
    user_id = (select auth.uid())
    and exists (select 1 from public.members m where m.user_id = (select auth.uid()) and m.status = 'approved')
  );
+drop policy if exists "Members can update own bank details" on public.member_bank_accounts;
 create policy "Members can update own bank details" on public.member_bank_accounts
  for update to authenticated using (
    user_id = (select auth.uid())
@@ -28,6 +32,7 @@ create policy "Members can update own bank details" on public.member_bank_accoun
    user_id = (select auth.uid())
    and exists (select 1 from public.members m where m.user_id = (select auth.uid()) and m.status = 'approved')
  );
+drop policy if exists "Authorised admins can verify bank details" on public.member_bank_accounts;
 create policy "Authorised admins can verify bank details" on public.member_bank_accounts
  for update to authenticated using (
    exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'national_admin')
@@ -49,6 +54,7 @@ begin
   return new;
 end;
 $$;
+drop trigger if exists protect_member_bank_account_trigger on public.member_bank_accounts;
 create trigger protect_member_bank_account_trigger
 before insert or update on public.member_bank_accounts
 for each row execute function public.protect_member_bank_account();
