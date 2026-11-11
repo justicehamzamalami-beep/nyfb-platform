@@ -134,3 +134,20 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
 .ny-actions button,.ny-search-tools button{border-radius:7px!important}
 .ny-status{border-radius:30px!important;padding:6px 10px!important}
 @media(max-width:680px){.ny-sidebar{border-radius:0 0 14px 14px!important}.ny-topbar{box-shadow:0 3px 12px #173b2708!important}.ny-content{padding:20px 13px!important}.ny-stat{padding:13px!important}.ny-panel{border-radius:11px!important}}
+
+/* Member portal: keep navigation as one consistent vertical sidebar on every member page */
+.member-dashboard-layout{display:grid!important;grid-template-columns:245px minmax(0,1fr)!important;gap:24px!important;align-items:start!important}
+.member-sidebar{display:flex!important;flex-direction:column!important;align-items:stretch!important}
+.member-sidebar>a{display:flex!important;width:100%!important;flex:0 0 auto!important;white-space:normal!important}
+.member-sidebar>a.active{background:#b8f5c9!important;color:#04331f!important;border:1px solid #d4ffe0!important}
+.member-sidebar>a.active span{color:#d4ffe0!important;background:#04331f!important;border-radius:5px!important}
+@media(max-width:950px){
+ .member-dashboard-layout{grid-template-columns:1fr!important}
+ .member-sidebar{position:relative!important;top:auto!important;width:100%!important}
+ .member-sidebar>a{width:100%!important}
+}
+@media(max-width:620px){
+ .member-sidebar{display:flex!important;flex-direction:column!important;gap:2px!important;padding:13px 10px!important}
+ .member-sidebar>a{display:flex!important;width:100%!important;padding:12px 13px!important;font-size:12px!important}
+ .member-sidebar .sidebar-footer{display:block!important}
+}
