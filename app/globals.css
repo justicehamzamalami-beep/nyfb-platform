@@ -228,3 +228,7 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
   .member-menu-toggle{margin-top:12px!important}
   .member-dashboard-layout>.member-sidebar.is-open{padding:13px 10px!important}
 }
+
+/* Final override: the member dashboard menu is closed unless explicitly opened */
+#member-sidebar[hidden]{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#member-sidebar:not([hidden]){display:flex!important;visibility:visible!important;pointer-events:auto!important}
