@@ -186,3 +186,11 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
  .membership-card .card-details h2{font-size:15px!important}
  .membership-card .card-bottom{font-size:6px!important;gap:6px!important}
 }
+
+/* Keep the profile-page photo compact and contained */
+.member-section-page .member-summary .member-welcome-row{align-items:center!important;gap:14px!important}
+.member-section-page .member-summary .member-avatar-wrap{width:52px!important;height:52px!important;min-width:52px!important;max-width:52px!important;flex:0 0 52px!important;border-radius:50%!important;overflow:hidden!important}
+.member-section-page .member-summary .member-avatar-photo{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:cover!important;border-radius:50%!important}
+@media(max-width:480px){
+ .member-section-page .member-summary .member-avatar-wrap{width:46px!important;height:46px!important;min-width:46px!important;max-width:46px!important;flex-basis:46px!important}
+}
