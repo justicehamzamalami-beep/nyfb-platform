@@ -23,34 +23,5 @@ export default function MemberSection({section}:{section:"profile"|"rewards"|"an
  {section==="settings"&&<section className="member-summary"><h2>Account security</h2><p>Change your password or recover access to your NYFB account.</p><Link className="btn" href="/forgot-password">Change or reset password</Link><p style={{marginTop:20}}>Keep your sign-in details private and use a strong password.</p></section>}
  {section==="support"&&<section className="member-summary"><h2>Contact NYFB support</h2><p>For membership verification, profile corrections, account access or other portal issues, contact the support team.</p><p><strong>Email:</strong> nigerianyouthforbat@gmail.com</p><a className="btn" href="mailto:nigerianyouthforbat@gmail.com?subject=NYFB%20Member%20Portal%20Support">Email support team</a></section>}
  </div>}</div></div></section><style jsx global>{`.member-brand>img{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:9px;padding:3px}.member-sidebar a.active{background:#b8f5c9;color:#04331f;border-color:#d4ffe0}.member-sidebar a.active span{background:#04331f;color:#d4ffe0}.member-section-page{min-width:0}.member-section-page>.member-summary{margin-top:0}.member-section-page h2{color:#fff}.member-section-page .member-history-row{display:grid;grid-template-columns:120px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid #277449;color:#eaffef}.member-section-page .member-history-row strong{color:#b8f5c9}.member-section-page .member-history-row small{color:#c5e8d0}@media(max-width:760px){.member-section-page .member-history-row{grid-template-columns:1fr;gap:5px}.member-section-page .member-activity{grid-template-columns:repeat(2,minmax(0,1fr))}}@media print{body{background:#fff!important}.member-dashboard-shell{padding:0!important;background:#fff!important}.member-space{max-width:none!important;padding:0!important;border:0!important;box-shadow:none!important;background:#fff!important}.member-actions,.member-brand,.member-sidebar,.member-heading,.print-card{display:none!important}.member-dashboard-layout{display:block!important}.membership-card{print-color-adjust:exact;-webkit-print-color-adjust:exact;margin:0 auto!important}}
-        /* Final card layout overrides kept beside the component styles */
-        .membership-card-section{width:100%!important;max-width:760px!important;margin:28px auto 0!important}
-        .membership-card{width:100%!important;max-width:680px!important;min-height:0!important;aspect-ratio:1.586/1!important;box-sizing:border-box!important;padding:24px!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;gap:0!important;border:1.5px solid #d9bd69!important;border-radius:18px!important;background:linear-gradient(125deg,#06271d 0%,#075035 58%,#087448 100%)!important;box-shadow:0 18px 42px #06271d26!important;overflow:hidden!important}
-        .membership-card .card-top{display:grid!important;grid-template-columns:58px minmax(0,1fr) auto!important;align-items:center!important;gap:14px!important;width:100%!important}
-        .membership-card .card-emblem{width:58px!important;height:58px!important;flex:0 0 58px!important}
-        .membership-card .card-brand-copy{min-width:0!important}
-        .membership-card .card-top strong{font-size:14px!important;line-height:1.25!important;letter-spacing:.7px!important}
-        .membership-card .card-top small{font-size:8px!important;line-height:1.35!important;letter-spacing:.8px!important}
-        .membership-card .card-approved{margin:0!important;padding:7px 9px!important;font-size:8px!important}
-        .membership-card .card-main{display:grid!important;grid-template-columns:104px minmax(0,1fr)!important;gap:22px!important;align-items:center!important;margin:18px 0!important;min-width:0!important}
-        .membership-card .card-avatar{width:104px!important;height:130px!important;min-width:0!important;flex:none!important;border-radius:10px!important}
-        .membership-card .card-details{min-width:0!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important}
-        .membership-card .card-details h2{font-size:22px!important;line-height:1.15!important;margin:3px 0 8px!important;overflow-wrap:anywhere!important;color:#fff!important}
-        .membership-card .card-id-block{margin-top:2px!important}
-        .membership-card .card-id-block strong{font-size:14px!important;line-height:1.3!important}
-        .membership-card .card-location{font-size:10px!important;line-height:1.4!important;margin-top:7px!important}
-        .membership-card .card-bottom{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;flex-wrap:wrap!important;padding-top:10px!important;font-size:8px!important;line-height:1.35!important}
-        @media(max-width:620px){
-          .membership-card{aspect-ratio:auto!important;min-height:230px!important;padding:15px!important}
-          .membership-card .card-top{grid-template-columns:44px minmax(0,1fr)!important;gap:9px!important}
-          .membership-card .card-emblem{width:44px!important;height:44px!important;flex-basis:44px!important}
-          .membership-card .card-top strong{font-size:10px!important}
-          .membership-card .card-top small{font-size:6px!important}
-          .membership-card .card-approved{grid-column:2!important;justify-self:start!important;padding:5px 7px!important;font-size:6px!important}
-          .membership-card .card-main{grid-template-columns:74px minmax(0,1fr)!important;gap:12px!important;margin:14px 0!important}
-          .membership-card .card-avatar{width:74px!important;height:94px!important}
-          .membership-card .card-details h2{font-size:15px!important}
-          .membership-card .card-bottom{font-size:6px!important;gap:6px!important}
-        }
 `}</style></main>
 }
