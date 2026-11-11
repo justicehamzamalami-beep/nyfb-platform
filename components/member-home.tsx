@@ -41,7 +41,7 @@ export default function MemberHome() {
         ]);
         if(memberResult.error)throw memberResult.error;
         if(active)setMember(memberResult.data as Member|null);
-        if(active){const {data:{publicUrl}}=supabase.storage.from("nyfb-member-photos").getPublicUrl(`${user.id}/profile`);setAvatarUrl(`${publicUrl}?v=${Date.now()}`);}
+        if(active){const {data:photoBlob}=await supabase.storage.from("nyfb-member-photos").download(`${user.id}/profile`);if(photoBlob)setAvatarUrl(URL.createObjectURL(photoBlob));}
         if(active&&!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
         if(active){
           const tasks=taskResult.error?[]:taskResult.data||[];
@@ -80,8 +80,9 @@ export default function MemberHome() {
       const path=`${user.id}/profile`;
       const {error:uploadError}=await supabase.storage.from("nyfb-member-photos").upload(path,file,{upsert:true,contentType:file.type,cacheControl:"3600"});
       if(uploadError)throw uploadError;
-      const {data:{publicUrl}}=supabase.storage.from("nyfb-member-photos").getPublicUrl(path);
-      setAvatarUrl(publicUrl+`?v=${Date.now()}`);
+      const {data:photoBlob,error:photoError}=await supabase.storage.from("nyfb-member-photos").download(path);
+      if(photoError||!photoBlob)throw photoError||new Error("Photo uploaded but could not be loaded.");
+      setAvatarUrl(URL.createObjectURL(photoBlob));
       setPhotoMessage("Profile picture updated successfully.");
     }catch(e){console.error("NYFB profile photo upload failed:",e);setPhotoMessage(e instanceof Error?e.message:"Unable to upload your picture. Check your connection and try again.");}
     finally{setUploadingPhoto(false);event.target.value="";}
