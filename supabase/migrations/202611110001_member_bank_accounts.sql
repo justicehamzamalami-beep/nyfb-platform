@@ -40,9 +40,6 @@ create or replace function public.protect_member_bank_account()
 returns trigger language plpgsql set search_path = '' as $$
 begin
   if auth.uid() is not null and auth.uid() = new.user_id then
-    if tg_op = 'UPDATE' and new.verification_status is distinct from old.verification_status then
-      raise exception 'Members cannot change bank verification status';
-    end if;
     new.verification_status := 'pending';
     new.submitted_at := coalesce(old.submitted_at, now());
     new.updated_at := now();
