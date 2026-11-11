@@ -43,3 +43,11 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,s
  .party-identity{display:none}
  .mobile-menu summary{padding:10px 11px}
 }
+
+/* Keep the homepage menu in the header's top-right corner on compact screens */
+@media(max-width:900px){
+ .header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+ .party-identity{display:none!important}
+ .mobile-menu{margin-left:auto!important}
+ .mobile-menu>div{right:0;left:auto}
+}
