@@ -87,9 +87,13 @@ export default function AdminWorkspace(){
   const {error:updateError}=await supabase.from("members").update({status,reviewed_at:new Date().toISOString(),reviewed_by:user?.id,rejection_reason:reason}).eq("id",member.id);
   if(updateError)setError(updateError.message);
   else {
-   const {data:emailResult,error:emailError}=await supabase.functions.invoke("send-member-status-email",{body:{member_id:member.id,status,reason}});
-   if(emailError||emailResult?.error)setNotice(member.member_number+" has been "+status+", but the email notification was not sent. "+(emailResult?.error||emailError?.message||"Please try again later."));
-   else setNotice(member.member_number+" has been "+status+" and the member has been notified by email.");
+   if(status==="approved"){
+    setNotice(member.member_number+" has been approved. No email notification was sent.");
+   } else {
+    const {data:emailResult,error:emailError}=await supabase.functions.invoke("send-member-status-email",{body:{member_id:member.id,status,reason}});
+    if(emailError||emailResult?.error)setNotice(member.member_number+" has been "+status+", but the email notification was not sent. "+(emailResult?.error||emailError?.message||"Please try again later."));
+    else setNotice(member.member_number+" has been "+status+" and the member has been notified by email.");
+   }
    await load();
   }
   setBusy("");
@@ -105,12 +109,8 @@ export default function AdminWorkspace(){
   const {data:updated,error:updateError}=await supabase.from("members").update({status:"approved",reviewed_at:new Date().toISOString(),reviewed_by:user.id,rejection_reason:null}).in("id",ids).eq("status","pending").select("id,member_number");
   if(updateError){setError(updateError.message);setSaving(false);return;}
   const approved=(updated||[]) as {id:string;member_number:string}[];
-  const emailResults=await Promise.all(approved.map(async item=>{
-   const {error:emailError,data}=await supabase.functions.invoke("send-member-status-email",{body:{member_id:item.id,status:"approved",reason:null}});
-   return Boolean(emailError||data?.error);
-  }));
   setSelectedIds([]);
-  setNotice(approved.length+" application(s) approved. "+emailResults.filter(Boolean).length+" notification email(s) could not be sent.");
+  setNotice(approved.length+" application(s) approved. No email notifications were sent.");
   await load();setSaving(false);
  }
  async function setBankVerification(item:BankAccount,status:"verified"|"rejected"){
