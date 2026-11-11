@@ -1,3 +1,4 @@
+"use client";
 import HomepageMedia,{SiteLogo,APCLogo} from "@/components/public-site-content";
 import Link from "next/link";
 const features=[
