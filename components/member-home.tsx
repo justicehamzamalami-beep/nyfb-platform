@@ -17,6 +17,7 @@ export default function MemberHome() {
   const [uploadingPhoto,setUploadingPhoto]=useState(false);
   const [photoMessage,setPhotoMessage]=useState("");
   const [menuOpen,setMenuOpen]=useState(false);
+  const [referralMessage,setReferralMessage]=useState("");
 
   useEffect(()=>{
     let active=true;
@@ -82,6 +83,26 @@ export default function MemberHome() {
     finally{setUploadingPhoto(false);event.target.value="";}
   }
 
+  async function copyReferralLink(){
+    if(!member?.referral_code)return;
+    const link=window.location.origin+"/join?ref="+member.referral_code;
+    try{
+      if(navigator.clipboard&&window.isSecureContext){
+        await navigator.clipboard.writeText(link);
+      }else{
+        const input=document.createElement("textarea");
+        input.value=link;input.setAttribute("readonly","");
+        input.style.position="fixed";input.style.opacity="0";input.style.left="-9999px";
+        document.body.appendChild(input);input.select();input.setSelectionRange(0,input.value.length);
+        const copied=document.execCommand("copy");document.body.removeChild(input);
+        if(!copied)throw new Error("Copy command was blocked");
+      }
+      setReferralMessage("Referral link copied. Share it with your friends.");
+    }catch{
+      setReferralMessage("Copy was blocked. Please copy this link manually: "+link);
+    }
+  }
+
   return (
     <main className="member-dashboard-shell">
       <section className="member-space">
@@ -108,7 +129,7 @@ export default function MemberHome() {
           <div className="member-welcome-row"><div className="member-avatar-wrap">{avatarUrl?<img src={avatarUrl} alt="Your profile" className="member-avatar-photo"/>:<span className="member-avatar-placeholder">{member.full_name.trim().charAt(0).toUpperCase()}</span>}</div><div className="member-welcome-copy"><p>Welcome, {member.full_name}. Here is your current membership record.</p><label className="photo-upload-button">{uploadingPhoto?"Uploading picture…":"Upload profile picture"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadProfilePhoto} disabled={uploadingPhoto}/></label><small className="photo-help">JPG, PNG or WEBP · Maximum 5MB</small>{photoMessage&&<small className="photo-message" role="status">{photoMessage}</small>}</div></div>
           <div className="member-programme-link"><Link href="/programmes">Explore events, welfare, volunteer tasks and support groups →</Link></div><div className="member-summary" id="profile"><small>MEMBERSHIP NUMBER</small><h2>{member.member_number}</h2><p><strong>Status:</strong> <span className={"status status-"+member.status}>{member.status.toUpperCase()}</span></p><p><strong>Location:</strong> {member.lga}, {member.state}</p>{member.ward&&<p><strong>Ward:</strong> {member.ward}</p>}</div>
           <section className="member-activity" id="rewards" aria-label="Your participation summary"><div><small>REWARD BALANCE</small><strong>₦{stats.wallet.toLocaleString("en-NG")}</strong><span>Approved cash rewards</span></div><div><small>RECOGNITION POINTS</small><strong>{stats.points.toLocaleString("en-NG")}</strong><span>Verified participation</span></div><div><small>COMPLETED TASKS</small><strong>{stats.tasks}</strong><span>Approved submissions</span></div><div><small>EVENTS ATTENDED</small><strong>{stats.events}</strong><span>Confirmed check-ins</span></div><div><small>REFERRALS</small><strong>{stats.referrals}</strong><span>{stats.verifiedReferrals} verified</span></div></section>
-          {member.status==="approved"&&<section className="member-referral-box"><div><small>YOUR PERSONAL INVITATION CODE</small><h2>{member.referral_code}</h2><p>Earn ₦500 for each directly referred member after their membership is approved. Earn ₦100 when a member referred by your direct referral is approved.</p></div><button type="button" onClick={()=>navigator.clipboard.writeText(window.location.origin+"/join?ref="+member.referral_code)}>Copy referral link</button></section>}
+          {member.status==="approved"&&<section className="member-referral-box"><div><small>YOUR PERSONAL INVITATION CODE</small><h2>{member.referral_code}</h2><p>Earn ₦500 for each directly referred member after their membership is approved. Earn ₦100 when a member referred by your direct referral is approved.</p></div><button type="button" onClick={copyReferralLink}>Copy referral link</button>{referralMessage&&<p className="referral-copy-message" role="status">{referralMessage}</p>}</section>}
           <section className="member-announcements" id="announcements"><div className="member-section-head"><div><small>OFFICIAL UPDATES</small><h2>Announcements</h2></div><span>{announcements.length} updates</span></div>
             {announcements.length===0?<p className="no-announcements">There are no new announcements at the moment.</p>:announcements.map(item=><article key={item.id}><div className="announcement-date">{new Date(item.published_at||item.created_at).toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"})}</div><h3>{item.title}</h3><p>{item.body}</p>{item.audience==="state"&&item.target_state&&<small>For members in {item.target_state}</small>}</article>)}
           </section>
