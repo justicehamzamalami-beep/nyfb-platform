@@ -130,8 +130,8 @@ export default function MemberHome() {
       const jpeg=canvas.toDataURL("image/jpeg",.96).split(",")[1];
       const binary=atob(jpeg);const imageBytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)imageBytes[i]=binary.charCodeAt(i);
       const pageW=85.6*72/25.4,pageH=54*72/25.4;
-      const enc=new TextEncoder();const chunks=[];let length=0;const offsets=[0];
-      const push=(part)=>{const bytes=typeof part==="string"?enc.encode(part):part;chunks.push(bytes);length+=bytes.length;};
+      const enc=new TextEncoder();const chunks:Uint8Array<ArrayBuffer>[]=[];let length=0;const offsets:number[]=[0];
+      const push=(part:string|Uint8Array<ArrayBuffer>):void=>{const bytes=typeof part==="string"?enc.encode(part):part;chunks.push(bytes);length+=bytes.length;};
       push("%PDF-1.4\n%NYFB\n");
       const contentStream=`q\n${pageW.toFixed(3)} 0 0 ${pageH.toFixed(3)} 0 0 cm\n/Card Do\nQ\n`;
       const contentLength=enc.encode(contentStream).length;
