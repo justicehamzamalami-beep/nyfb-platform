@@ -144,6 +144,7 @@ export default function MemberHome() {
             <div className="sidebar-label">MEMBER MENU</div>
             <Link href="/member" onClick={()=>setMenuOpen(false)}><span>⌂</span> Overview</Link>
             <Link href="/member/profile" onClick={()=>setMenuOpen(false)}><span>◉</span> My profile</Link>
+            <Link href="/member/bank-details" onClick={()=>setMenuOpen(false)}><span>₦</span> Bank account information</Link>
             <Link href="/member/card" onClick={()=>setMenuOpen(false)}><span>▣</span> Membership card</Link>
             <Link href="/member/rewards" onClick={()=>setMenuOpen(false)}><span>₦</span> Rewards &amp; referrals</Link>
             <Link href="/programmes" onClick={()=>setMenuOpen(false)}><span>▤</span> Programmes &amp; events</Link>
