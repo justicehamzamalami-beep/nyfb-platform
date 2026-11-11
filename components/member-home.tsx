@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import NotificationCenter from "@/components/notification-center";
 
 const NYFB_LOGO_URL = "https://brpqtdqejvlxsyzlyrfv.supabase.co/storage/v1/object/public/nyfb-site-media/website/logo/15fe9ad9-01c7-4bb6-873e-bc8ba989018d.jpg";
 const APC_LOGO_URL = "https://cdn.legit.ng/images/1120/c80c390d3b880d90.jpeg?v=1";
@@ -136,6 +137,7 @@ export default function MemberHome() {
 
         <div className="brand member-brand" style={{marginTop:24}}><img src={NYFB_LOGO_URL} alt="NYFB official logo" /><span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span></div>
         <button className="member-menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="member-sidebar" onClick={()=>setMenuOpen(v=>!v)}><span>☰</span> Dashboard menu <span className="menu-toggle-state">{menuOpen?"Close":"Open"}</span></button>
+        <NotificationCenter />
         <div className="member-dashboard-layout">
           <aside hidden={!menuOpen} aria-hidden={!menuOpen} className={"member-sidebar"+(menuOpen?" is-open":"")} id="member-sidebar">
             <div className="sidebar-label">MEMBER MENU</div>
