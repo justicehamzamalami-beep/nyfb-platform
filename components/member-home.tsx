@@ -83,27 +83,76 @@ export default function MemberHome() {
     finally{setUploadingPhoto(false);event.target.value="";}
   }
 
-  function printMembershipCard(){
+  async function printMembershipCard(){
     const card=document.getElementById("nyfb-membership-card");
-    if(!card){window.alert("Membership card is not available. Please refresh the page and try again.");return;}
-    const printWindow=window.open("","_blank","width=600,height=400");
-    if(!printWindow){window.alert("Your browser blocked the print window. Please allow pop-ups for this website and try again.");return;}
-    const cardMarkup=card.innerHTML;
-    printWindow.document.open();
-    printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NYFB Membership Card</title><style>
-      @page{size:85.6mm 54mm;margin:0}
-      *{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-      html,body{width:85.6mm;height:54mm;margin:0;padding:0;overflow:hidden;background:#fff}
-      body{font-family:Arial,Helvetica,sans-serif}
-      .membership-card{width:85.6mm;height:54mm;margin:0;padding:3.5mm;border:0.3mm solid #b8f5c9;border-radius:0;background:linear-gradient(125deg,#022819,#07502e 58%,#1b8a4a);color:#fff;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;box-shadow:none}
-      .card-top{display:flex;align-items:center;gap:2mm}.card-emblem{width:10mm;height:10mm;flex:0 0 10mm;border:1px solid #b8f5c9;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:12pt;color:#b8f5c9}
-      .card-top strong{display:block;font-size:8pt;letter-spacing:.4px}.card-top small,.card-approved{display:block;font-size:5.5pt;letter-spacing:.5px}.card-approved{margin-left:auto;color:#b8f5c9;font-weight:800}
-      .card-main{display:flex;align-items:center;gap:3mm;margin:3mm 0}.card-avatar{width:17mm;height:22mm;flex:0 0 17mm;border:1px solid #ffffff88;border-radius:1mm;display:grid;place-items:center;overflow:hidden;font-weight:800;color:#d8ffe1;background:#ffffff12;font-size:8pt}.card-avatar img{width:100%;height:100%;object-fit:cover}
-      .card-details{min-width:0}.card-details small{display:block;font-size:5.5pt;letter-spacing:.6px;opacity:.9}.card-details h2{font-size:11pt;line-height:1.15;margin:1mm 0 2mm;overflow-wrap:anywhere}.card-details strong{display:block;font-size:8pt;letter-spacing:.4px;margin-top:1mm}.card-location{font-size:5.5pt;margin-top:2mm;opacity:.9}
-      .card-bottom{border-top:1px solid #ffffff55;padding-top:2mm;display:flex;justify-content:space-between;gap:2mm;font-size:5.5pt;letter-spacing:.3px}
-      @media screen{body{width:85.6mm;height:54mm;margin:20px auto}.membership-card{border-radius:2mm;box-shadow:0 3px 12px #0004}}
-    </style></head><body><div class="membership-card">${cardMarkup}</div><script>window.addEventListener('load',function(){var imgs=Array.from(document.images);Promise.all(imgs.map(function(img){return img.decode?img.decode().catch(function(){}):new Promise(function(resolve){if(img.complete)resolve();else{img.onload=resolve;img.onerror=resolve;}})})).then(function(){setTimeout(function(){window.focus();window.print();},300);});});window.addEventListener('afterprint',function(){window.close();});<\/script></body></html>`);
-    printWindow.document.close();
+    if(!card){window.alert("Membership card is not available. Please refresh and try again.");return;}
+    try{
+      const canvas=document.createElement("canvas");
+      canvas.width=1712;canvas.height=1080;
+      const ctx=canvas.getContext("2d");
+      if(!ctx)throw new Error("Canvas is not supported by this browser");
+      const gradient=ctx.createLinearGradient(0,0,1712,1080);
+      gradient.addColorStop(0,"#022819");gradient.addColorStop(.58,"#07502e");gradient.addColorStop(1,"#1b8a4a");
+      ctx.fillStyle=gradient;ctx.fillRect(0,0,1712,1080);
+      ctx.strokeStyle="#b8f5c9";ctx.lineWidth=6;ctx.strokeRect(3,3,1706,1074);
+      const top=card.querySelector(".card-top");
+      const brand=top?.querySelector("strong")?.textContent?.trim()||"NIGERIAN YOUTH FOR BAT";
+      const sub=top?.querySelector("small")?.textContent?.trim()||"OFFICIAL MEMBERSHIP CARD";
+      const approved=top?.querySelector(".card-approved")?.textContent?.trim()||"APPROVED";
+      ctx.beginPath();ctx.arc(125,125,78,0,Math.PI*2);ctx.strokeStyle="#b8f5c9";ctx.lineWidth=5;ctx.stroke();
+      ctx.fillStyle="#b8f5c9";ctx.font="bold 76px Arial";ctx.textAlign="center";ctx.fillText("NY",125,151);
+      ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="bold 43px Arial";ctx.fillText(brand,235,105,1120);
+      ctx.font="26px Arial";ctx.fillText(sub,235,151);
+      ctx.textAlign="right";ctx.fillStyle="#b8f5c9";ctx.font="bold 28px Arial";ctx.fillText(approved,1640,112);
+      const avatar=card.querySelector(".card-avatar");
+      const ax=100,ay=300,aw=340,ah=440;
+      ctx.fillStyle="#ffffff18";ctx.fillRect(ax,ay,aw,ah);ctx.strokeStyle="#ffffff88";ctx.lineWidth=4;ctx.strokeRect(ax,ay,aw,ah);
+      const avatarImg=avatar?.querySelector("img");
+      if(avatarImg){try{if(!avatarImg.complete)await new Promise(resolve=>{avatarImg.onload=resolve;avatarImg.onerror=resolve;});ctx.drawImage(avatarImg,ax,ay,aw,ah);}catch{ctx.fillStyle="#d8ffe1";ctx.font="bold 45px Arial";ctx.textAlign="center";ctx.fillText("NYFB",ax+aw/2,ay+ah/2);}}
+      else{ctx.fillStyle="#d8ffe1";ctx.font="bold 45px Arial";ctx.textAlign="center";ctx.fillText("NYFB",ax+aw/2,ay+ah/2);}
+      const details=card.querySelector(".card-details");
+      const name=details?.querySelector("h2")?.textContent?.trim()||member?.full_name||"";
+      const detailLabels=details?.querySelectorAll("small");
+      const idLabel=detailLabels?.[1]?.textContent?.trim()||"MEMBERSHIP ID";
+      const memberId=details?.querySelector("strong")?.textContent?.trim()||member?.member_number||"";
+      const location=details?.querySelector(".card-location")?.textContent?.trim()||[member?.ward,member?.lga,member?.state].filter(Boolean).join(", ");
+      ctx.textAlign="left";ctx.fillStyle="#ffffff";ctx.font="24px Arial";ctx.fillText("MEMBER NAME",500,340);
+      ctx.font="bold 58px Arial";
+      let displayName=name;while(ctx.measureText(displayName).width>1120&&displayName.length>8)displayName=displayName.slice(0,-2)+"…";
+      ctx.fillText(displayName,500,420,1120);
+      ctx.font="24px Arial";ctx.fillText(idLabel,500,520);
+      ctx.font="bold 42px Arial";ctx.fillText(memberId,500,580,1120);
+      ctx.font="28px Arial";ctx.fillText(location,500,660,1120);
+      ctx.strokeStyle="#ffffff66";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(100,850);ctx.lineTo(1612,850);ctx.stroke();
+      ctx.fillStyle="#fff";ctx.font="bold 23px Arial";ctx.fillText("VALID NYFB MEMBER",100,930);
+      const issued=card.querySelector(".card-bottom span:last-child")?.textContent?.trim()||"OFFICIAL RECORD";
+      ctx.textAlign="right";ctx.font="22px Arial";ctx.fillText(issued,1612,930);
+      const jpeg=canvas.toDataURL("image/jpeg",.96).split(",")[1];
+      const binary=atob(jpeg);const imageBytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)imageBytes[i]=binary.charCodeAt(i);
+      const pageW=85.6*72/25.4,pageH=54*72/25.4;
+      const enc=new TextEncoder();const chunks=[];let length=0;const offsets=[0];
+      const push=(part)=>{const bytes=typeof part==="string"?enc.encode(part):part;chunks.push(bytes);length+=bytes.length;};
+      push("%PDF-1.4\\n%NYFB\\n");
+      const objects=[
+        "<< /Type /Catalog /Pages 2 0 R >>",
+        "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW.toFixed(3)} ${pageH.toFixed(3)}] /Resources << /XObject << /Card 4 0 R >> >> /Contents 5 0 R >>`,
+        `<< /Type /XObject /Subtype /Image /Width 1712 /Height 1080 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\\nstream\\n`,
+        `<< /Length 38 >>\\nstream\\nq\\n${pageW.toFixed(3)} 0 0 ${pageH.toFixed(3)} 0 0 cm\\n/Card Do\\nQ\\nendstream`
+      ];
+      for(let i=0;i<objects.length;i++){
+        offsets.push(length);push(`${i+1} 0 obj\\n`);
+        if(i===3){push(objects[i]);push(imageBytes);push("\\nendstream\\nendobj\\n");}
+        else push(objects[i]+"\\nendobj\\n");
+      }
+      const xref=length;push(`xref\\n0 6\\n0000000000 65535 f \\n`);
+      for(let i=1;i<offsets.length;i++)push(String(offsets[i]).padStart(10,"0")+" 00000 n \\n");
+      push(`trailer\\n<< /Size 6 /Root 1 0 R >>\\nstartxref\\n${xref}\\n%%EOF`);
+      const pdfBlob=new Blob(chunks,{type:"application/pdf"});
+      const url=URL.createObjectURL(pdfBlob);const link=document.createElement("a");
+      link.href=url;link.download="NYFB-Membership-Card-"+(member?.member_number||"ID")+".pdf";
+      document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+    }catch(error){console.error(error);window.alert("The ID-card PDF could not be created in this browser. Please try again or use another browser.");}
   }
 
   async function copyReferralLink(){
