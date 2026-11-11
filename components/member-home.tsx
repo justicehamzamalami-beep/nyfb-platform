@@ -88,93 +88,28 @@ export default function MemberHome() {
     finally{setUploadingPhoto(false);event.target.value="";}
   }
 
-  async function printMembershipCard(){
+  function printMembershipCard(){
     const card=document.getElementById("nyfb-membership-card");
-    if(!card){window.alert("Membership card is not available. Please refresh and try again.");return;}
-    try{
-      const canvas=document.createElement("canvas");
-      canvas.width=1712;canvas.height=1080;
-      const ctx=canvas.getContext("2d");
-      if(!ctx)throw new Error("Canvas is not supported by this browser");
-      const gradient=ctx.createLinearGradient(0,0,1712,1080);
-      gradient.addColorStop(0,"#022819");gradient.addColorStop(.58,"#07502e");gradient.addColorStop(1,"#1b8a4a");
-      ctx.fillStyle=gradient;ctx.fillRect(0,0,1712,1080);
-      ctx.strokeStyle="#b8f5c9";ctx.lineWidth=6;ctx.strokeRect(3,3,1706,1074);
-      const top=card.querySelector(".card-top");
-      const brand=top?.querySelector("strong")?.textContent?.trim()||"NIGERIAN YOUTH FOR BAT";
-      const sub=top?.querySelector("small")?.textContent?.trim()||"OFFICIAL MEMBERSHIP CARD";
-      const approved=top?.querySelector(".card-approved")?.textContent?.trim()||"APPROVED";
-      const logoImage = new Image();
-      logoImage.crossOrigin = "anonymous";
-      logoImage.src = NYFB_LOGO_URL;
-      try {
-        await new Promise<void>((resolve, reject) => {
-          logoImage.onload = () => resolve();
-          logoImage.onerror = () => reject(new Error("NYFB logo could not be loaded"));
-        });
-        ctx.save();ctx.beginPath();ctx.roundRect(48,48,154,154,22);ctx.clip();
-        ctx.fillStyle="#fff";ctx.fillRect(48,48,154,154);
-        const scale=Math.min(142/logoImage.naturalWidth,142/logoImage.naturalHeight);
-        const w=logoImage.naturalWidth*scale,h=logoImage.naturalHeight*scale;
-        ctx.drawImage(logoImage,125-w/2,125-h/2,w,h);ctx.restore();
-      } catch {
-        ctx.beginPath();ctx.arc(125,125,78,0,Math.PI*2);ctx.strokeStyle="#b8f5c9";ctx.lineWidth=5;ctx.stroke();
-        ctx.fillStyle="#b8f5c9";ctx.font="bold 76px Arial";ctx.textAlign="center";ctx.fillText("NY",125,151);
-      }
-      ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="bold 43px Arial";ctx.fillText(brand,235,105,1120);
-      ctx.font="26px Arial";ctx.fillText(sub,235,151);
-      ctx.textAlign="right";ctx.fillStyle="#b8f5c9";ctx.font="bold 28px Arial";ctx.fillText(approved,1640,112);
-      const avatar=card.querySelector(".card-avatar");
-      const ax=100,ay=300,aw=340,ah=440;
-      ctx.fillStyle="#ffffff18";ctx.fillRect(ax,ay,aw,ah);ctx.strokeStyle="#ffffff88";ctx.lineWidth=4;ctx.strokeRect(ax,ay,aw,ah);
-      const avatarImg=avatar?.querySelector("img");
-      if(avatarImg){try{if(!avatarImg.complete)await new Promise(resolve=>{avatarImg.onload=resolve;avatarImg.onerror=resolve;});ctx.drawImage(avatarImg,ax,ay,aw,ah);}catch{ctx.fillStyle="#d8ffe1";ctx.font="bold 45px Arial";ctx.textAlign="center";ctx.fillText("NYFB",ax+aw/2,ay+ah/2);}}
-      else{ctx.fillStyle="#d8ffe1";ctx.font="bold 45px Arial";ctx.textAlign="center";ctx.fillText("NYFB",ax+aw/2,ay+ah/2);}
-      const details=card.querySelector(".card-details");
-      const name=details?.querySelector("h2")?.textContent?.trim()||member?.full_name||"";
-      const detailLabels=details?.querySelectorAll("small");
-      const idLabel=detailLabels?.[1]?.textContent?.trim()||"MEMBERSHIP ID";
-      const memberId=details?.querySelector("strong")?.textContent?.trim()||member?.member_number||"";
-      const location=details?.querySelector(".card-location")?.textContent?.trim()||[member?.ward,member?.lga,member?.state].filter(Boolean).join(", ");
-      ctx.textAlign="left";ctx.fillStyle="#ffffff";ctx.font="24px Arial";ctx.fillText("MEMBER NAME",500,340);
-      ctx.font="bold 58px Arial";
-      let displayName=name;while(ctx.measureText(displayName).width>1120&&displayName.length>8)displayName=displayName.slice(0,-2)+"…";
-      ctx.fillText(displayName,500,420,1120);
-      ctx.font="24px Arial";ctx.fillText(idLabel,500,520);
-      ctx.font="bold 42px Arial";ctx.fillText(memberId,500,580,1120);
-      ctx.font="28px Arial";ctx.fillText(location,500,660,1120);
-      ctx.strokeStyle="#ffffff66";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(100,850);ctx.lineTo(1612,850);ctx.stroke();
-      ctx.fillStyle="#fff";ctx.font="bold 23px Arial";ctx.fillText("VALID NYFB MEMBER",100,930);
-      const issued=card.querySelector(".card-bottom span:last-child")?.textContent?.trim()||"OFFICIAL RECORD";
-      ctx.textAlign="right";ctx.font="22px Arial";ctx.fillText(issued,1612,930);
-      const jpeg=canvas.toDataURL("image/jpeg",.96).split(",")[1];
-      const binary=atob(jpeg);const imageBytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)imageBytes[i]=binary.charCodeAt(i);
-      const pageW=85.6*72/25.4,pageH=54*72/25.4;
-      const enc=new TextEncoder();const chunks:Uint8Array<ArrayBuffer>[]=[];let length=0;const offsets:number[]=[0];
-      const push=(part:string|Uint8Array<ArrayBuffer>):void=>{const bytes=typeof part==="string"?enc.encode(part):part;chunks.push(bytes);length+=bytes.length;};
-      push("%PDF-1.4\n%NYFB\n");
-      const contentStream=`q\n${pageW.toFixed(3)} 0 0 ${pageH.toFixed(3)} 0 0 cm\n/Card Do\nQ\n`;
-      const contentLength=enc.encode(contentStream).length;
-      const objects=[
-        "<< /Type /Catalog /Pages 2 0 R >>",
-        "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW.toFixed(3)} ${pageH.toFixed(3)}] /Resources << /XObject << /Card 4 0 R >> >> /Contents 5 0 R >>`,
-        `<< /Type /XObject /Subtype /Image /Width 1712 /Height 1080 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\nstream\n`,
-        `<< /Length ${contentLength} >>\nstream\n${contentStream}endstream`
-      ];
-      for(let i=0;i<objects.length;i++){
-        offsets.push(length);push(`${i+1} 0 obj\n`);
-        if(i===3){push(objects[i]);push(imageBytes);push("\nendstream\nendobj\n");}
-        else push(objects[i]+"\nendobj\n");
-      }
-      const xref=length;push(`xref\n0 6\n0000000000 65535 f \n`);
-      for(let i=1;i<offsets.length;i++)push(String(offsets[i]).padStart(10,"0")+" 00000 n \n");
-      push(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
-      const pdfBlob=new Blob(chunks,{type:"application/pdf"});
-      const url=URL.createObjectURL(pdfBlob);const link=document.createElement("a");
-      link.href=url;link.download="NYFB-Membership-Card-"+(member?.member_number||"ID")+".pdf";
-      document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
-    }catch(error){console.error(error);window.alert("The ID-card PDF could not be created in this browser. Please try again or use another browser.");}
+    const section=card?.closest(".membership-card-section");
+    if(!card||!section){window.alert("Membership card is not available. Please refresh and try again.");return;}
+    // Print the exact card rendered on the dashboard, not a separately redrawn canvas.
+    const style=document.createElement("style");
+    style.id="nyfb-card-print-styles";
+    style.textContent=`
+      @page{size:85.6mm 54mm;margin:0}
+      @media print{
+        html,body{width:85.6mm!important;height:54mm!important;margin:0!important;padding:0!important;background:#fff!important;overflow:hidden!important}
+        body *{visibility:hidden!important}
+        .membership-card-section,.membership-card-section *{visibility:visible!important}
+        .membership-card-section{position:absolute!important;left:0!important;top:0!important;width:85.6mm!important;height:54mm!important;margin:0!important;padding:0!important}
+        .membership-card-section .membership-card{position:absolute!important;left:0!important;top:0!important;width:85.6mm!important;height:54mm!important;max-width:none!important;min-height:0!important;aspect-ratio:auto!important;box-sizing:border-box!important;margin:0!important;padding:4mm!important;border-radius:0!important;box-shadow:none!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}
+        .membership-card-section .print-card,.membership-card-section .card-note{display:none!important}
+      }`;
+    document.head.appendChild(style);
+    const cleanup=()=>{style.remove();window.removeEventListener("afterprint",cleanup);};
+    window.addEventListener("afterprint",cleanup);
+    window.print();
+    window.setTimeout(cleanup,1500);
   }
 
   async function copyReferralLink(){
