@@ -83,6 +83,29 @@ export default function MemberHome() {
     finally{setUploadingPhoto(false);event.target.value="";}
   }
 
+  function printMembershipCard(){
+    const card=document.getElementById("nyfb-membership-card");
+    if(!card){window.alert("Membership card is not available. Please refresh the page and try again.");return;}
+    const printWindow=window.open("","_blank","width=600,height=400");
+    if(!printWindow){window.alert("Your browser blocked the print window. Please allow pop-ups for this website and try again.");return;}
+    const cardMarkup=card.innerHTML;
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NYFB Membership Card</title><style>
+      @page{size:85.6mm 54mm;margin:0}
+      *{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+      html,body{width:85.6mm;height:54mm;margin:0;padding:0;overflow:hidden;background:#fff}
+      body{font-family:Arial,Helvetica,sans-serif}
+      .membership-card{width:85.6mm;height:54mm;margin:0;padding:3.5mm;border:0.3mm solid #b8f5c9;border-radius:0;background:linear-gradient(125deg,#022819,#07502e 58%,#1b8a4a);color:#fff;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;box-shadow:none}
+      .card-top{display:flex;align-items:center;gap:2mm}.card-emblem{width:10mm;height:10mm;flex:0 0 10mm;border:1px solid #b8f5c9;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:12pt;color:#b8f5c9}
+      .card-top strong{display:block;font-size:8pt;letter-spacing:.4px}.card-top small,.card-approved{display:block;font-size:5.5pt;letter-spacing:.5px}.card-approved{margin-left:auto;color:#b8f5c9;font-weight:800}
+      .card-main{display:flex;align-items:center;gap:3mm;margin:3mm 0}.card-avatar{width:17mm;height:22mm;flex:0 0 17mm;border:1px solid #ffffff88;border-radius:1mm;display:grid;place-items:center;overflow:hidden;font-weight:800;color:#d8ffe1;background:#ffffff12;font-size:8pt}.card-avatar img{width:100%;height:100%;object-fit:cover}
+      .card-details{min-width:0}.card-details small{display:block;font-size:5.5pt;letter-spacing:.6px;opacity:.9}.card-details h2{font-size:11pt;line-height:1.15;margin:1mm 0 2mm;overflow-wrap:anywhere}.card-details strong{display:block;font-size:8pt;letter-spacing:.4px;margin-top:1mm}.card-location{font-size:5.5pt;margin-top:2mm;opacity:.9}
+      .card-bottom{border-top:1px solid #ffffff55;padding-top:2mm;display:flex;justify-content:space-between;gap:2mm;font-size:5.5pt;letter-spacing:.3px}
+      @media screen{body{width:85.6mm;height:54mm;margin:20px auto}.membership-card{border-radius:2mm;box-shadow:0 3px 12px #0004}}
+    </style></head><body><div class="membership-card">${cardMarkup}</div><script>window.addEventListener('load',function(){var imgs=Array.from(document.images);Promise.all(imgs.map(function(img){return img.decode?img.decode().catch(function(){}):new Promise(function(resolve){if(img.complete)resolve();else{img.onload=resolve;img.onerror=resolve;}})})).then(function(){setTimeout(function(){window.focus();window.print();},300);});});window.addEventListener('afterprint',function(){window.close();});<\/script></body></html>`);
+    printWindow.document.close();
+  }
+
   async function copyReferralLink(){
     if(!member?.referral_code)return;
     const link=window.location.origin+"/join?ref="+member.referral_code;
@@ -140,7 +163,7 @@ export default function MemberHome() {
                 <div className="card-main"><div className="card-avatar">{avatarUrl?<img src={avatarUrl} alt="Member profile" />:"NYFB"}</div><div className="card-details"><small>MEMBER NAME</small><h2>{member.full_name}</h2><small>MEMBERSHIP ID</small><strong>{member.member_number}</strong><div className="card-location">{member.ward?member.ward+", ":""}{member.lga}, {member.state}</div></div></div>
                 <div className="card-bottom"><span>VALID NYFB MEMBER</span><span>{member.reviewed_at?"ISSUED "+new Date(member.reviewed_at).toLocaleDateString("en-NG"):"OFFICIAL RECORD"}</span></div>
               </div>
-              <button className="btn print-card" onClick={()=>window.print()}>Print / Save as PDF</button>
+              <button className="btn print-card" onClick={printMembershipCard}>Print / Save as PDF</button>
               <p className="card-note">You can print this card or choose “Save as PDF” in your browser’s print options.</p>
             </section>
           ):<p className="membership-note">{member.status==="pending"?"Your application is awaiting review. Your official membership card will become available here once it is approved.":member.status==="rejected"?"Your application was not approved. Please contact your NYFB coordinator for further guidance.":"Your membership is currently suspended. Please contact the NYFB administration for assistance."}</p>}
@@ -181,7 +204,6 @@ export default function MemberHome() {
         .card-top{display:flex;align-items:center;gap:12px}.card-emblem{width:44px;height:44px;border:2px solid #c4f7d0;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#d8ffe1}.card-top strong,.card-top small{display:block}.card-top strong{font-size:13px;letter-spacing:1px}.card-top small{font-size:9px;opacity:.85;margin-top:4px;letter-spacing:1px}.card-approved{margin-left:auto;font-size:9px;letter-spacing:1px;border:1px solid #c4f7d0;color:#eaffef;padding:6px 8px;border-radius:20px}
         .card-main{display:flex;gap:18px;align-items:center;margin:26px 0}.card-avatar{width:78px;height:94px;border:1px solid #ffffff88;border-radius:8px;display:grid;place-items:center;overflow:hidden;font-weight:800;color:#d8ffe1;background:#ffffff12}.card-avatar img{width:100%;height:100%;object-fit:cover}.card-details small{display:block;font-size:8px;letter-spacing:1.5px;opacity:.85}.card-details h2{font-size:20px;margin:5px 0 12px}.card-details strong{display:block;font-size:14px;letter-spacing:1px;margin-top:4px}.card-location{font-size:11px;margin-top:9px;opacity:.9}.card-bottom{border-top:1px solid #ffffff55;padding-top:12px;display:flex;justify-content:space-between;gap:8px;font-size:8px;letter-spacing:1px}.print-card{margin-top:16px;width:min(100%,700px);background:#b8f5c9;border-color:#d4ffe0;color:#04331f}.card-note{font-size:12px;color:#d6f3df}
         @media(max-width:760px){.member-dashboard-layout{display:block;margin-top:12px}.member-menu-toggle{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;margin:0 0 10px;background:#b8f5c9;color:#04331f;border:0;border-radius:8px;font-size:12px;font-weight:900;text-align:left}.member-menu-toggle>span:first-child{font-size:17px}.menu-toggle-state{margin-left:auto;font-size:10px}.member-sidebar{display:none;position:static;min-height:0;margin-bottom:16px}.member-sidebar.is-open{display:flex}.sidebar-footer{margin-top:8px}.member-activity{grid-template-columns:repeat(2,minmax(0,1fr))}.member-referral-box{display:block}.member-referral-box button{margin-top:12px}.member-dashboard-shell{padding:12px 10px 35px}.member-space{padding:20px 15px;border-radius:13px}.member-heading{display:block}.member-portal-tag{display:inline-block;margin-top:13px}.member-navigation{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px}.member-navigation a{font-size:10px;min-height:40px;padding:8px}.card-main{gap:12px}.card-details h2{font-size:17px}.card-top strong{font-size:10px}.member-welcome-row{align-items:flex-start;padding:13px}.member-avatar-wrap{width:60px;height:60px;flex-basis:60px}}
-        @media print{@page{size:85.6mm 54mm;margin:0}html,body{width:85.6mm!important;height:54mm!important;min-width:85.6mm!important;min-height:54mm!important;margin:0!important;padding:0!important;background:#fff!important;overflow:hidden!important}body *{visibility:hidden!important}#nyfb-membership-card,#nyfb-membership-card *{visibility:visible!important}.membership-card-section{display:block!important;position:static!important;width:85.6mm!important;height:54mm!important;margin:0!important;padding:0!important}.membership-card-section>:not(#nyfb-membership-card){display:none!important}#nyfb-membership-card{display:flex!important;position:fixed!important;left:0!important;top:0!important;width:85.6mm!important;height:54mm!important;min-width:85.6mm!important;min-height:54mm!important;max-width:none!important;max-height:54mm!important;aspect-ratio:auto!important;box-sizing:border-box!important;margin:0!important;padding:3.5mm!important;border-radius:0!important;border:0.3mm solid #b8f5c9!important;box-shadow:none!important;overflow:hidden!important;break-inside:avoid!important;page-break-inside:avoid!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}.card-top{gap:2mm}.card-emblem{width:10mm;height:10mm;flex:0 0 10mm}.card-top strong{font-size:8pt}.card-top small,.card-approved{font-size:5.5pt}.card-main{gap:3mm;margin:3mm 0}.card-avatar{width:17mm;height:22mm;flex:0 0 17mm}.card-details h2{font-size:11pt;margin:1mm 0 2mm}.card-details strong{font-size:8pt}.card-details small,.card-location,.card-bottom{font-size:5.5pt}.card-bottom{padding-top:2mm}.print-card,.card-note{display:none!important}}
-      `}</style>   </main>
+`}</style>   </main>
   );
 }
