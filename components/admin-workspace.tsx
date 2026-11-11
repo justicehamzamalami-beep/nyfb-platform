@@ -129,7 +129,7 @@ export default function AdminWorkspace(){
    <nav>{nav.map(item=><button key={item.id} className={tab===item.id?"active":""} onClick={()=>{setTab(item.id);setNotice("");setError("");}}><span>{item.icon}</span>{item.label}{item.id==="members"&&counts.pending>0?<i>{counts.pending}</i>:null}</button>)}</nav>
    <div className="ny-side-caption ny-side-group">PROGRAMME OPERATIONS</div>
    <Link href="/admin/programmes" className="ny-programme-link"><span className="ny-link-icon">▣</span><span className="ny-link-label">Programme management</span><b>→</b></Link>
-   {isNationalAdmin&&<Link href="/admin/coordinators" className="ny-programme-link"><span className="ny-link-icon">♙</span><span className="ny-link-label">Coordinator management</span><b>→</b></Link>}
+   {isNationalAdmin&&<Link href="/admin/coordinators" className="ny-programme-link"><span className="ny-link-icon">♙</span><span className="ny-link-label">Coordinator management</span><b>→</b></Link>}\n   {isNationalAdmin&&<Link href="/admin/website" className="ny-programme-link"><span className="ny-link-icon">▧</span><span className="ny-link-label">Website content</span><b>→</b></Link>}
    <div className="ny-side-caption ny-side-group">ORGANISATION &amp; ACCOUNT</div>
    <Link href="/#about" className="ny-programme-link"><span className="ny-link-icon">ⓘ</span><span className="ny-link-label">About NYFB</span><b>→</b></Link>
    <Link href="/forgot-password" className="ny-programme-link"><span className="ny-link-icon">⚙</span><span className="ny-link-label">Account settings</span><b>→</b></Link>
