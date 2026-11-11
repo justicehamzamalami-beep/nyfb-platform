@@ -18,15 +18,40 @@ export default function MemberSection({section}:{section:"profile"|"rewards"|"an
  const referral=member?"https://nigerianyouthforbat.org/join?ref="+member.referral_code:"";
  return <main className="member-dashboard-shell"><section className="member-space"><div className="member-actions"><Link className="back-home" href="/">← NYFB home</Link><button className="back-home sign-out" onClick={signOut}>Sign out</button></div><div className="brand member-brand"><img src={NYFB_LOGO_URL} alt="NYFB official logo" /><span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span></div><div className="member-dashboard-layout"><aside className="member-sidebar"><div className="sidebar-label">MEMBER MENU</div>{menu.map(([href,label,icon])=><Link key={href} href={href} aria-current={path===href?"page":undefined} className={path===href?"active":""}><span>{icon}</span>{label}</Link>)}<div className="sidebar-footer">NIGERIAN YOUTH FOR BAT<br/><small>MEMBER PORTAL</small></div></aside><div className="member-main-content"><header className="member-heading"><div><small>MEMBER PORTAL</small><h1>{titles[section]}</h1><p>{descriptions[section]}</p></div><span className="member-portal-tag">SECURE MEMBER AREA</span></header>{loading?<p>Loading your information…</p>:error?<p className="form-message form-error">{error}</p>:!member?<p>No membership record was found for this account.</p>:<div className="member-section-page">
  {section==="profile"&&<div className="profile-content"><section className="member-summary"><div className="member-welcome-row"><div className="member-avatar-wrap">{avatar?<img src={avatar} className="member-avatar-photo" alt="Profile"/>:<span className="member-avatar-placeholder">{member.full_name[0]}</span>}</div><div><h2>{member.full_name}</h2><label className="photo-upload-button">Update profile photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload} hidden/></label><small className="photo-help">JPG, PNG or WEBP, maximum 5MB</small>{message&&<small className="photo-message">{message}</small>}</div></div><p><strong>Membership number:</strong> {member.member_number}</p><p><strong>Full name:</strong> {member.full_name}</p><p><strong>Membership status:</strong> {member.status.toUpperCase()}</p><p><strong>State:</strong> {member.state}</p><p><strong>LGA:</strong> {member.lga}</p><p><strong>Ward:</strong> {member.ward||"Not provided"}</p></section>
- {member.status==="approved"&&<section className="nyfb-id-wrap" aria-label="Official NYFB APC Ambassador identity card">
-   <div className="nyfb-id-card" id="nyfb-profile-id-card"><div className="nyfb-id-frame">
-    <div className="nyfb-id-header"><div className="nyfb-id-logos"><div className="nyfb-id-logo"><img src={NYFB_LOGO_URL} alt="NYFB official logo"/></div><div className="nyfb-id-apc" aria-label="Official All Progressives Congress logo"><APCPartyLogo/></div></div><div className="nyfb-id-org">NIGERIAN YOUTH<br/>FOR BAT<small>OFFICIAL IDENTIFICATION CARD</small></div><span className="nyfb-id-verified">✓ VERIFIED</span></div>
-    <div className="nyfb-id-role">APC AMBASSADOR</div>
-    <div className="nyfb-id-person"><div className="nyfb-id-photo">{avatar?<img src={avatar} alt={member.full_name}/>:<span>{member.full_name.trim().charAt(0).toUpperCase()}</span>}</div><div className="nyfb-id-name"><small>FULL NAME</small><strong>{member.full_name}</strong></div></div>
-    <div className="nyfb-id-number"><small>MEMBERSHIP IDENTIFICATION NUMBER</small><strong>{member.member_number}</strong></div>
-    <div className="nyfb-id-location"><div><small>STATE</small><b>{member.state||"—"}</b></div><div><small>LOCAL GOVERNMENT</small><b>{member.lga||"—"}</b></div><div><small>WARD</small><b>{member.ward||"—"}</b></div></div>
-    <div className="nyfb-id-footer"><b>NYFB • APC AMBASSADOR</b><span>OFFICIAL MEMBER</span></div>
-   </div></div><div className="nyfb-id-actions"><button type="button" className="btn" onClick={printMemberId}>Print or Save ID Card</button><p>Your official vertical ID card is available to print or save as PDF.</p></div></section></div>}
+ {member.status === "approved" ? (
+  <section className="nyfb-id-wrap" aria-label="Official NYFB APC Ambassador identity card">
+    <div className="nyfb-id-card" id="nyfb-profile-id-card">
+      <div className="nyfb-id-frame">
+        <div className="nyfb-id-header">
+          <div className="nyfb-id-logos">
+            <div className="nyfb-id-logo"><img src={NYFB_LOGO_URL} alt="NYFB official logo" /></div>
+            <div className="nyfb-id-apc" aria-label="Official All Progressives Congress logo"><APCPartyLogo /></div>
+          </div>
+          <div className="nyfb-id-org">NIGERIAN YOUTH<br />FOR BAT<small>OFFICIAL IDENTIFICATION CARD</small></div>
+          <span className="nyfb-id-verified">✓ VERIFIED</span>
+        </div>
+        <div className="nyfb-id-role">APC AMBASSADOR</div>
+        <div className="nyfb-id-person">
+          <div className="nyfb-id-photo">
+            {avatar ? <img src={avatar} alt={member.full_name} /> : <span>{member.full_name.trim().charAt(0).toUpperCase()}</span>}
+          </div>
+          <div className="nyfb-id-name"><small>FULL NAME</small><strong>{member.full_name}</strong></div>
+        </div>
+        <div className="nyfb-id-number"><small>MEMBERSHIP IDENTIFICATION NUMBER</small><strong>{member.member_number}</strong></div>
+        <div className="nyfb-id-location">
+          <div><small>STATE</small><b>{member.state || "—"}</b></div>
+          <div><small>LOCAL GOVERNMENT</small><b>{member.lga || "—"}</b></div>
+          <div><small>WARD</small><b>{member.ward || "—"}</b></div>
+        </div>
+        <div className="nyfb-id-footer"><b>NYFB • APC AMBASSADOR</b><span>OFFICIAL MEMBER</span></div>
+      </div>
+    </div>
+    <div className="nyfb-id-actions">
+      <button type="button" className="btn" onClick={printMemberId}>Print or Save ID Card</button>
+      <p>Your official vertical ID card is available to print or save as PDF.</p>
+    </div>
+  </section>
+) : null}</div>}
 
  {section==="rewards"&&<><div className="member-activity"><div><small>REWARD BALANCE</small><strong>₦{rewards.reduce((s,x)=>s+Number(x.amount_ngn||0),0).toLocaleString("en-NG")}</strong><span>Recorded rewards</span></div><div><small>REFERRALS</small><strong>{referrals.length}</strong><span>Total referrals</span></div><div><small>VERIFIED REFERRALS</small><strong>{referrals.filter(x=>x.status==="verified").length}</strong><span>Verified referrals</span></div></div>{member.status==="approved"&&<div className="member-referral-box"><div><small>YOUR REFERRAL CODE</small><h2>{member.referral_code}</h2><p>Share your personal invitation link with prospective members.</p><input readOnly value={referral} aria-label="Referral link" style={{width:"100%",padding:10,marginTop:10,borderRadius:6}}/></div><button onClick={()=>navigator.clipboard?.writeText(referral).then(()=>setMessage("Referral link copied."))}>Copy referral link</button></div>}{message&&<p role="status">{message}</p>}<h2>Reward history</h2>{rewards.length?rewards.map((x,i)=><article key={i} className="member-history-row"><strong>₦{Number(x.amount_ngn||0).toLocaleString("en-NG")}</strong><span>{x.description||x.reward_type}</span><small>{new Date(x.created_at).toLocaleDateString("en-NG")}</small></article>):<p>No reward transactions have been recorded yet.</p>}</>}
  {section==="announcements"&&<section className="member-announcements"><div className="member-section-head"><h2>Latest official updates</h2><span>{notices.length} updates</span></div>{notices.length?notices.map(x=><article key={x.id}><div className="announcement-date">{new Date(x.published_at||x.created_at).toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"})}</div><h3>{x.title}</h3><p>{x.body}</p>{x.audience==="state"&&x.target_state&&<small>For members in {x.target_state}</small>}</article>):<p>No announcements are available at the moment.</p>}</section>}
