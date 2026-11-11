@@ -21,6 +21,8 @@ export default function MemberHome() {
   const [photoMessage,setPhotoMessage]=useState("");
   const [menuOpen,setMenuOpen]=useState(false);
   const [referralMessage,setReferralMessage]=useState("");
+  const [sendingCard,setSendingCard]=useState(false);
+  const [cardEmailMessage,setCardEmailMessage]=useState("");
 
   useEffect(()=>{
     let active=true;
@@ -89,28 +91,22 @@ export default function MemberHome() {
     finally{setUploadingPhoto(false);event.target.value="";}
   }
 
-  function printMembershipCard(){
-    const card=document.getElementById("nyfb-membership-card");
-    const section=card?.closest(".membership-card-section");
-    if(!card||!section){window.alert("Membership card is not available. Please refresh and try again.");return;}
-    // Print the exact card rendered on the dashboard, not a separately redrawn canvas.
-    const style=document.createElement("style");
-    style.id="nyfb-card-print-styles";
-    style.textContent=`
-      @page{size:54mm 85.6mm;margin:0}
-      @media print{
-        html,body{width:54mm!important;height:85.6mm!important;margin:0!important;padding:0!important;background:#fff!important;overflow:hidden!important}
-        body *{visibility:hidden!important}
-        .membership-card-section,.membership-card-section *{visibility:visible!important}
-        .membership-card-section{position:absolute!important;left:0!important;top:0!important;width:54mm!important;height:85.6mm!important;margin:0!important;padding:0!important}
-        .membership-card-section .membership-card{position:absolute!important;left:0!important;top:0!important;width:85.6mm!important;height:54mm!important;max-width:none!important;min-height:0!important;aspect-ratio:auto!important;box-sizing:border-box!important;margin:0!important;padding:4mm!important;border-radius:0!important;box-shadow:none!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}
-        .membership-card-section .print-card,.membership-card-section .card-note{display:none!important}
-      }`;
-    document.head.appendChild(style);
-    const cleanup=()=>{style.remove();window.removeEventListener("afterprint",cleanup);};
-    window.addEventListener("afterprint",cleanup);
-    window.print();
-    window.setTimeout(cleanup,1500);
+  async function emailMembershipCard(){
+    setSendingCard(true);
+    setCardEmailMessage("");
+    try{
+      const supabase=createClient();
+      const {data:{user},error:authError}=await supabase.auth.getUser();
+      if(authError||!user)throw new Error("Please sign in again and try once more.");
+      const {data,error}=await supabase.functions.invoke("send-member-id-card",{body:{}});
+      if(error)throw new Error(error.message||"Unable to send your ID card.");
+      if(data?.error)throw new Error(data.error);
+      setCardEmailMessage("Your digital ID card has been sent to "+(data?.recipient||"your registered email address")+". Please check your Gmail inbox and spam folder.");
+    }catch(e){
+      setCardEmailMessage(e instanceof Error?e.message:"Unable to email your ID card. Please try again.");
+    }finally{
+      setSendingCard(false);
+    }
   }
 
   async function copyReferralLink(){
@@ -187,8 +183,8 @@ export default function MemberHome() {
                 </div>
                 <div className="card-bottom"><span><b>NYFB</b> · APC AMBASSADOR</span><span>{member.reviewed_at?"ISSUED "+new Date(member.reviewed_at).toLocaleDateString("en-NG"):"OFFICIAL RECORD"}</span></div>
               </div>
-              <button className="btn print-card" onClick={printMembershipCard}>Print / Save as PDF</button>
-              <p className="card-note">You can print this card or choose “Save as PDF” in your browser’s print options.</p>
+              <button className="btn print-card" onClick={emailMembershipCard} disabled={sendingCard}>{sendingCard?"Sending ID card…":"Send ID card to my Gmail"}</button>
+              <p className="card-note" role="status">{cardEmailMessage||"Your digital membership card will be sent to the email address linked to your NYFB account."}</p>
             </section>
           ):<p className="membership-note">{member.status==="pending"?"Your application is awaiting review. Your official membership card will become available here once it is approved.":member.status==="rejected"?"Your application was not approved. Please contact your NYFB coordinator for further guidance.":"Your membership is currently suspended. Please contact the NYFB administration for assistance."}</p>}
         </>}
