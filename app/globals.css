@@ -51,3 +51,86 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,s
  .mobile-menu{margin-left:auto!important}
  .mobile-menu>div{right:0;left:auto}
 }
+
+
+/* NYFB platform refresh — national identity, clearer hierarchy and responsive dashboards */
+:root{--nyfb-forest:#073b2b;--nyfb-green:#11734b;--nyfb-gold:#d9b65d;--nyfb-ink:#152b22;--nyfb-muted:#718078;--nyfb-bg:#f3f6f3;--nyfb-line:#e2e9e3}
+body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
+.brand b,.ny-brand .ny-mark{background:linear-gradient(145deg,#073b2b,#168052)!important;color:#f4d98b!important;box-shadow:0 5px 16px #073b2b22}
+.header{border-bottom:1px solid #e8eee9;box-shadow:0 4px 18px #102d1a08}
+.btn{background:var(--nyfb-green);border-color:var(--nyfb-green);border-radius:8px;box-shadow:0 5px 14px #11734b20}
+.btn:hover{background:var(--nyfb-forest)}
+.member-dashboard-shell{min-height:100vh!important;background:radial-gradient(ellipse at 85% 0%,#e1eee4 0,transparent 38%),#f3f6f3!important;color:var(--nyfb-ink)!important}
+.member-space{max-width:1440px!important;padding:24px clamp(14px,3vw,42px) 60px!important}
+.member-actions{display:flex;justify-content:space-between;align-items:center}
+.member-brand{padding:16px 20px!important;background:var(--nyfb-forest);border-radius:15px;color:#fff!important;box-shadow:0 12px 30px #073b2b18}
+.member-brand b{background:#ffffff18!important;border:1px solid #ffffff30;color:#f1d78b!important;border-radius:11px!important}
+.member-brand small{color:#c5d8cc!important}
+.member-dashboard-layout{display:grid!important;grid-template-columns:245px minmax(0,1fr)!important;gap:24px!important;align-items:start!important;margin-top:22px!important}
+.member-sidebar{position:sticky!important;top:18px;background:linear-gradient(180deg,#073b2b,#0b5138)!important;border:1px solid #ffffff18!important;border-radius:16px!important;padding:18px 13px!important;box-shadow:0 12px 35px #073b2b18!important}
+.member-sidebar .sidebar-label{color:#d6bd79!important;font-weight:800!important;letter-spacing:1.6px!important;padding:8px 12px 14px!important}
+.member-sidebar a{display:flex!important;align-items:center!important;gap:12px!important;padding:12px 13px!important;margin:3px 0!important;border-radius:9px!important;color:#e1eee5!important;font-size:12px!important;transition:.18s ease}
+.member-sidebar a:hover,.member-sidebar a:focus{background:#ffffff17!important;color:#f3d98d!important}
+.member-sidebar a span{width:20px;text-align:center;color:#e4c979!important}
+.member-sidebar .sidebar-footer{border-top:1px solid #ffffff25!important;color:#e4c979!important;margin:20px 8px 0!important;padding:17px 8px 5px!important;font-size:9px!important;line-height:1.8}
+.member-sidebar .sidebar-footer small{color:#c3d5c9!important}
+.member-main-content{min-width:0!important;background:#fff!important;border:1px solid var(--nyfb-line)!important;border-radius:18px!important;padding:clamp(18px,3vw,34px)!important;box-shadow:0 12px 35px #193b2709!important}
+.member-heading{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;border-bottom:1px solid var(--nyfb-line)!important;padding-bottom:22px!important}
+.member-heading>div>small,.member-section-head small,.member-summary>small{color:#8b7540!important;letter-spacing:1.5px!important;font-weight:800!important}
+.member-heading h1{font:800 clamp(25px,3vw,36px)/1.15 Manrope,Arial!important;letter-spacing:-1.2px!important;color:var(--nyfb-forest)!important;margin:9px 0!important}
+.member-heading p,.member-welcome-copy p{color:var(--nyfb-muted)!important;line-height:1.7!important}
+.member-portal-tag{background:#edf5ee!important;color:#176b47!important;border:1px solid #d9e9dc!important;border-radius:30px!important;padding:9px 12px!important;font-size:9px!important;font-weight:800!important}
+.member-welcome-row{display:flex!important;align-items:center!important;gap:18px!important;background:linear-gradient(110deg,#f0f6f0,#fbfaf5)!important;border:1px solid #e4ece3!important;border-radius:13px!important;padding:18px!important;margin:22px 0!important}
+.member-avatar-wrap{width:66px!important;height:66px!important;flex:0 0 66px!important;border:3px solid #fff!important;box-shadow:0 3px 12px #183b271a!important}
+.member-avatar-placeholder{background:var(--nyfb-forest)!important;color:#f1d78b!important}
+.photo-upload-button{background:#11734b!important;border-radius:7px!important;padding:9px 13px!important}
+.member-programme-link{border-radius:10px!important;background:#eff6ef!important;border:1px solid #dcebdd!important;padding:14px 16px!important;margin:16px 0!important}
+.member-programme-link a{color:#176b47!important;font-weight:800!important}
+.member-summary{background:#fff!important;border:1px solid var(--nyfb-line)!important;border-radius:13px!important;padding:20px!important;margin:18px 0!important}
+.member-summary h2{font:800 26px Manrope!important;color:var(--nyfb-forest)!important;letter-spacing:0!important;margin:8px 0 13px!important}
+.member-summary p{color:#637269!important;font-size:12px!important}
+.member-activity{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:12px!important;margin:20px 0!important}
+.member-activity>div{background:#fff!important;border:1px solid var(--nyfb-line)!important;border-radius:12px!important;padding:16px!important;min-width:0!important;box-shadow:0 5px 16px #183b2706!important}
+.member-activity small{display:block!important;color:#7c8a80!important;font-size:9px!important;letter-spacing:.7px!important;font-weight:800!important}
+.member-activity strong{display:block!important;color:var(--nyfb-forest)!important;font:800 clamp(20px,2.4vw,29px) Manrope!important;margin:10px 0 5px!important}
+.member-activity span{font-size:10px!important;color:#8b968e!important}
+.member-referral-box{background:linear-gradient(120deg,#073b2b,#126744)!important;border-radius:13px!important;padding:20px!important;color:white!important}
+.member-referral-box small{color:#e7d28e!important;letter-spacing:1px!important}
+.member-referral-box h2{color:white!important;font:800 25px Manrope!important;margin:10px 0!important}
+.member-referral-box p{color:#d5e4d9!important;font-size:11px!important;line-height:1.7!important}
+.member-referral-box button{background:#e5c778!important;color:#153c2a!important;border-radius:7px!important;padding:11px 15px!important;font-weight:800!important}
+.member-announcements{margin-top:25px!important}
+.member-section-head{border-bottom:1px solid var(--nyfb-line)!important;padding-bottom:14px!important}
+.member-section-head h2{font:800 23px Manrope!important;color:var(--nyfb-forest)!important;margin:7px 0!important}
+.member-announcements article{border:1px solid var(--nyfb-line)!important;border-radius:11px!important;padding:17px!important;margin:12px 0!important;background:#fff!important}
+.member-announcements article h3{color:var(--nyfb-forest)!important}
+.membership-card{border-radius:17px!important;box-shadow:0 18px 40px #073b2b25!important;overflow:hidden}
+.member-menu-toggle{border-radius:8px!important;background:#0c5b3c!important;color:#fff!important;padding:11px 14px!important}
+@media(max-width:950px){.member-dashboard-layout{grid-template-columns:1fr!important}.member-sidebar{position:relative!important;top:auto!important}.member-activity{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:620px){.member-space{padding:12px 12px 35px!important}.member-brand{margin-top:16px!important}.member-main-content{padding:17px!important;border-radius:13px!important}.member-heading{display:block!important}.member-portal-tag{display:inline-flex!important;margin-top:10px!important}.member-activity{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}.member-activity>div{padding:12px!important}.member-welcome-row{align-items:flex-start!important}.member-sidebar{border-radius:12px!important}.member-sidebar a{display:inline-flex!important;width:calc(50% - 5px)!important;font-size:10px!important;padding:10px!important}.member-sidebar .sidebar-footer{display:none!important}}
+/* National administration workspace */
+.ny-admin{background:#f2f5f2!important;color:#183528!important}
+.ny-sidebar{background:linear-gradient(180deg,#062f23 0%,#0a4932 100%)!important;border-right:1px solid #ffffff12!important;box-shadow:8px 0 28px #0a302014!important}
+.ny-brand{padding-bottom:25px!important}
+.ny-mark{border-radius:11px!important;background:#ffffff18!important;border:1px solid #ffffff35!important;color:#efd58b!important}
+.ny-sidebar nav button{border-radius:9px!important;margin:3px 0!important;min-height:43px!important;color:#dce9df!important}
+.ny-sidebar nav button.active,.ny-sidebar nav button:hover{background:#ffffff18!important;color:#f1d58a!important}
+.ny-sidebar nav button.active span,.ny-sidebar nav button:hover span{color:#f1d58a!important}
+.ny-topbar{background:#fff!important;border-bottom:1px solid #e4ebe5!important;box-shadow:0 3px 15px #173b2706!important}
+.ny-content{background:transparent!important}
+.ny-welcome h1{color:#103e2b!important;font-weight:800!important}
+.ny-welcome p{color:#718078!important}
+.ny-date-chip{background:#fff!important;border:1px solid #e1e9e2!important;border-radius:30px!important;padding:10px 15px!important}
+.ny-stat,.ny-panel{border-radius:13px!important;border-color:#e2e9e3!important;box-shadow:0 8px 24px #173b2708!important}
+.ny-stat{padding:19px!important}
+.ny-stat>strong{color:#103e2b!important;font-weight:800!important}
+.ny-stat.warm{background:linear-gradient(145deg,#fff,#fff9ed)!important}
+.ny-stat.green{background:linear-gradient(145deg,#fff,#edf7ef)!important}
+.ny-stat.dark{background:linear-gradient(145deg,#073b2b,#10583d)!important}
+.ny-stat.dark>strong,.ny-stat.dark .ny-stat-top span{color:#fff!important}
+.ny-panel-head h2{color:#163c2b!important;font-weight:800!important}
+.ny-primary{background:#11734b!important;border-radius:8px!important}
+.ny-search-tools input,.ny-compose input,.ny-compose textarea,.ny-compose select{border-radius:8px!important}
+.ny-actions button,.ny-search-tools button{border-radius:7px!important}
+.ny-status{border-radius:30px!important;padding:6px 10px!important}
+@media(max-width:680px){.ny-sidebar{border-radius:0 0 14px 14px!important}.ny-topbar{box-shadow:0 3px 12px #173b2708!important}.ny-content{padding:20px 13px!important}.ny-stat{padding:13px!important}.ny-panel{border-radius:11px!important}}
