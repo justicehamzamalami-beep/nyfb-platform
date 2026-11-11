@@ -24,12 +24,15 @@ export default function MemberHome() {
         const supabase=createClient();
         const {data:{user},error:authError}=await supabase.auth.getUser();
         if(authError||!user){window.location.replace("/login");return;}
-        const [memberResult,announcementResult,taskResult,attendanceResult,referralResult]=await Promise.all([
-          supabase.from("members").select("member_number,full_name,status,state,lga,ward,reviewed_at").eq("user_id",user.id).maybeSingle(),
+        const lagosDay=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Lagos",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+        await supabase.from("reward_transactions").insert({user_id:user.id,amount_ngn:250,reward_type:"daily_login",description:"Daily NYFB member login reward",source_key:lagosDay});
+        const [memberResult,announcementResult,taskResult,attendanceResult,referralResult,rewardResult]=await Promise.all([
+          supabase.from("members").select("member_number,referral_code,full_name,status,state,lga,ward,reviewed_at").eq("user_id",user.id).maybeSingle(),
           supabase.from("announcements").select("id,title,body,audience,target_state,published_at,created_at").eq("published",true).order("published_at",{ascending:false}).limit(20),
           supabase.from("task_submissions").select("id,status,points_awarded").eq("user_id",user.id),
           supabase.from("event_attendance").select("id,checked_in_at,points_awarded").eq("user_id",user.id),
-          supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id)
+          supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id),
+          supabase.from("reward_transactions").select("amount_ngn,reward_type,created_at").eq("user_id",user.id)
         ]);
         if(memberResult.error)throw memberResult.error;
         if(active)setMember(memberResult.data as Member|null);
@@ -44,7 +47,8 @@ export default function MemberHome() {
             tasks:tasks.filter(row=>row.status==="approved").length,
             events:attendance.filter(row=>Boolean(row.checked_in_at)).length,
             referrals:referrals.length,
-            verifiedReferrals:referrals.filter(row=>row.status==="verified").length
+            verifiedReferrals:referrals.filter(row=>row.status==="verified").length,
+            wallet:rewardResult.error?0:(rewardResult.data||[]).reduce((sum,row)=>sum+Number(row.amount_ngn||0),0)
           });
         }
       }catch(e){if(active)setError(e instanceof Error?e.message:"Unable to load your membership.");}
