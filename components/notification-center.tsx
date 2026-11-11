@@ -34,7 +34,7 @@ export default function NotificationCenter() {
   useEffect(() => {
     void loadNotifications();
     const supabase = createClient();
-    let channel: ReturnType<typeof supabase.channel> | undefined;
+    let channel: any;
     let disposed = false;
     void (async () => {
       const { data: { user } } = await supabase.auth.getUser();
