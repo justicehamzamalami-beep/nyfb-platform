@@ -12,7 +12,7 @@ export default function JoinForm(){
    const referralCode=new URLSearchParams(window.location.search).get("ref")?.trim()||"";
   try{
    const supabase=createClient();
-   const {error}=await supabase.auth.signUp({email:String(v.email).trim().toLowerCase(),password:String(v.password),options:{emailRedirectTo:`${window.location.origin}/auth/callback`,data:{
+   const {error}=await supabase.auth.signUp({email:String(v.email).trim().toLowerCase(),password:String(v.password),options:{emailRedirectTo:`https://nigerianyouthforbat.org/auth/callback`,data:{
     full_name:String(v.full_name).trim(),phone:String(v.phone).trim(),gender:String(v.gender||""),
     date_of_birth:String(v.date_of_birth||""),state:String(v.state).trim(),lga:String(v.lga).trim(),
     ward:String(v.ward||"").trim(),occupation:String(v.occupation||"").trim(),referral_code:referralCode
