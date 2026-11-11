@@ -24,17 +24,16 @@ export default function MemberHome() {
         const supabase=createClient();
         const {data:{user},error:authError}=await supabase.auth.getUser();
         if(authError||!user){window.location.replace("/login");return;}
-        const [memberResult,announcementResult,taskResult,attendanceResult,referralResult,profileResult]=await Promise.all([
+        const [memberResult,announcementResult,taskResult,attendanceResult,referralResult]=await Promise.all([
           supabase.from("members").select("member_number,full_name,status,state,lga,ward,reviewed_at").eq("user_id",user.id).maybeSingle(),
           supabase.from("announcements").select("id,title,body,audience,target_state,published_at,created_at").eq("published",true).order("published_at",{ascending:false}).limit(20),
           supabase.from("task_submissions").select("id,status,points_awarded").eq("user_id",user.id),
           supabase.from("event_attendance").select("id,checked_in_at,points_awarded").eq("user_id",user.id),
-          supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id),
-          supabase.from("profiles").select("avatar_url").eq("id",user.id).maybeSingle()
+          supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id)
         ]);
         if(memberResult.error)throw memberResult.error;
         if(active)setMember(memberResult.data as Member|null);
-        if(active&&!profileResult.error)setAvatarUrl(profileResult.data?.avatar_url||null);
+        if(active){const {data:{publicUrl}}=supabase.storage.from("nyfb-member-photos").getPublicUrl(`${user.id}/profile`);setAvatarUrl(`${publicUrl}?v=${Date.now()}`);}
         if(active&&!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
         if(active){
           const tasks=taskResult.error?[]:taskResult.data||[];
@@ -67,16 +66,13 @@ export default function MemberHome() {
       const supabase=createClient();
       const {data:{user},error:authError}=await supabase.auth.getUser();
       if(authError||!user)throw new Error("Please sign in again to upload your picture.");
-      const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
-      const path=`${user.id}/profile.${ext}`;
+      const path=`${user.id}/profile`;
       const {error:uploadError}=await supabase.storage.from("nyfb-member-photos").upload(path,file,{upsert:true,contentType:file.type,cacheControl:"3600"});
       if(uploadError)throw uploadError;
       const {data:{publicUrl}}=supabase.storage.from("nyfb-member-photos").getPublicUrl(path);
-      const {error:updateError}=await supabase.from("profiles").update({avatar_url:publicUrl}).eq("id",user.id);
-      if(updateError)throw updateError;
       setAvatarUrl(publicUrl+`?v=${Date.now()}`);
       setPhotoMessage("Profile picture updated successfully.");
-    }catch(e){setPhotoMessage(e instanceof Error?e.message:"Unable to upload your picture.");}
+    }catch(e){console.error("NYFB profile photo upload failed:",e);setPhotoMessage(e instanceof Error?e.message:"Unable to upload your picture. Check your connection and try again.");}
     finally{setUploadingPhoto(false);event.target.value="";}
   }
 
