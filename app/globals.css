@@ -22,8 +22,8 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,s
  .mobile-menu>div a:hover{background:#eff5ee;color:var(--green)}
 }
 
-/* Public navigation: use one consistent dropdown on phones and tablets */
-@media(max-width:850px){
+/* Public navigation: use one consistent dropdown on phones, tablets and compact laptop widths */
+@media(max-width:1100px){
  .header{height:72px;padding:0 5%;gap:12px;position:relative;z-index:50}
  .header nav{display:none!important}
  .mobile-menu{display:block;position:relative;margin-left:auto;flex:0 0 auto;font-size:12px;font-weight:700;color:#315b43}
