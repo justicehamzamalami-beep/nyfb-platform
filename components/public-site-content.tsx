@@ -3,6 +3,7 @@ import {useEffect,useState} from "react";
 import {createClient} from "@/lib/supabase/client";
 
 type Content={id:string;content_type:"logo"|"executive"|"programme";title:string;subtitle:string|null;body:string|null;image_url:string|null;sort_order:number};
+export function APCLogo(){return <img src="https://cdn.legit.ng/images/1120/c80c390d3b880d90.jpeg?v=1" alt="All Progressives Congress (APC) logo" style={{width:54,height:54,objectFit:"contain",background:"#fff",border:"1px solid #e5e9e4",borderRadius:5,padding:2}}/>;}
 export function SiteLogo(){const [url,setUrl]=useState<string|null>(null);useEffect(()=>{const supabase=createClient();supabase.from("site_content").select("image_url").eq("content_type","logo").eq("is_published",true).not("image_url","is",null).order("sort_order").limit(1).maybeSingle().then(({data})=>{if(data?.image_url)setUrl(data.image_url);});},[]);return url?<img src={url} alt="NYFB official logo" style={{width:46,height:46,objectFit:"contain",borderRadius:8,background:"#fff",padding:3}}/>:<b>NY</b>;}
 export default function HomepageMedia(){
  const [items,setItems]=useState<Content[]>([]);
