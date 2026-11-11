@@ -151,3 +151,38 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
  .member-sidebar>a{display:flex!important;width:100%!important;padding:12px 13px!important;font-size:12px!important}
  .member-sidebar .sidebar-footer{display:block!important}
 }
+
+/* Refined NYFB membership identity card layout */
+.membership-card-section{width:100%;max-width:760px;margin:28px auto 0!important}
+.membership-card{width:100%!important;max-width:680px!important;min-height:0!important;aspect-ratio:1.586/1!important;box-sizing:border-box!important;padding:clamp(16px,2.5vw,26px)!important;gap:0!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;border:1.5px solid #d9bd69!important;border-radius:18px!important;background:radial-gradient(circle at 92% 10%,#d6b75b24 0 15%,transparent 15.5%),linear-gradient(125deg,#06271d 0%,#075035 58%,#087448 100%)!important;box-shadow:0 18px 42px #06271d26!important;color:#fff!important}
+.membership-card .card-top{display:grid!important;grid-template-columns:clamp(42px,7vw,62px) minmax(0,1fr) auto!important;align-items:center!important;gap:clamp(8px,1.6vw,15px)!important;width:100%!important}
+.membership-card .card-emblem{width:clamp(42px,7vw,62px)!important;height:clamp(42px,7vw,62px)!important;flex:0 0 auto!important;border-radius:12px!important;padding:4px!important}
+.membership-card .card-brand-copy{min-width:0!important}
+.membership-card .card-top strong{font-size:clamp(9px,1.55vw,14px)!important;line-height:1.25!important;letter-spacing:.7px!important;white-space:normal!important}
+.membership-card .card-top small{font-size:clamp(6px,.85vw,8px)!important;line-height:1.35!important;letter-spacing:.8px!important}
+.membership-card .card-approved{margin:0!important;padding:7px 9px!important;font-size:clamp(6px,.8vw,8px)!important;letter-spacing:.35px!important}
+.membership-card .card-main{display:grid!important;grid-template-columns:clamp(76px,14vw,116px) minmax(0,1fr)!important;gap:clamp(12px,2.5vw,24px)!important;align-items:center!important;margin:clamp(12px,2vw,20px) 0!important;min-width:0!important}
+.membership-card .card-avatar{width:100%!important;height:auto!important;aspect-ratio:4/5!important;min-width:0!important;flex:initial!important;border-radius:10px!important}
+.membership-card .card-details{min-width:0!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important}
+.membership-card .card-details .card-eyebrow{font-size:clamp(6px,.8vw,8px)!important;line-height:1.4!important;margin:0 0 5px!important;letter-spacing:1px!important}
+.membership-card .card-details>small:not(.card-eyebrow){font-size:clamp(6px,.75vw,8px)!important;line-height:1.3!important;letter-spacing:1px!important}
+.membership-card .card-details h2{font-size:clamp(14px,2.4vw,23px)!important;line-height:1.15!important;margin:2px 0 7px!important;overflow-wrap:anywhere!important;word-break:normal!important;color:#fff!important}
+.membership-card .card-id-block{margin-top:2px!important;padding:2px 0 2px 9px!important}
+.membership-card .card-id-block small{font-size:clamp(6px,.75vw,8px)!important}
+.membership-card .card-id-block strong{font-size:clamp(10px,1.45vw,14px)!important;line-height:1.3!important;letter-spacing:1px!important;overflow-wrap:anywhere!important}
+.membership-card .card-location{font-size:clamp(7px,1vw,10px)!important;line-height:1.4!important;margin-top:7px!important;overflow-wrap:anywhere!important}
+.membership-card .card-location span{font-size:clamp(6px,.75vw,8px)!important;line-height:1.3!important}
+.membership-card .card-bottom{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;flex-wrap:wrap!important;padding-top:9px!important;font-size:clamp(6px,.8vw,8px)!important;line-height:1.35!important;letter-spacing:.5px!important}
+.membership-card .card-bottom>span:last-child{text-align:right!important}
+.membership-card-section .print-card{margin-top:16px!important}
+.membership-card-section .card-note{font-size:11px!important;color:#78867d!important;line-height:1.6!important;margin-top:9px!important}
+@media(max-width:480px){
+ .membership-card{aspect-ratio:auto!important;min-height:225px!important;padding:14px!important;border-radius:14px!important}
+ .membership-card .card-top{grid-template-columns:42px minmax(0,1fr)!important;gap:9px!important}
+ .membership-card .card-emblem{width:42px!important;height:42px!important}
+ .membership-card .card-approved{grid-column:2!important;justify-self:start!important;margin-top:2px!important;padding:5px 8px!important}
+ .membership-card .card-main{grid-template-columns:72px minmax(0,1fr)!important;gap:11px!important;margin:13px 0!important}
+ .membership-card .card-avatar{width:72px!important}
+ .membership-card .card-details h2{font-size:15px!important}
+ .membership-card .card-bottom{font-size:6px!important;gap:6px!important}
+}
