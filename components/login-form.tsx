@@ -15,13 +15,20 @@ export default function LoginForm(){
    const {data:authData,error}=await supabase.auth.signInWithPassword({email:String(data.get("email")).trim().toLowerCase(),password:String(data.get("password"))});
    if(error)throw error;
    const userId=authData.user.id;
-   const [{data:profile},{data:assignments}]=await Promise.all([
-    supabase.from("profiles").select("role").eq("id",userId).single(),
+   // Do not leave members stuck on the login spinner if the database role
+   // lookup is slow or temporarily unavailable. Authentication has already
+   // succeeded, so fall back to the member area after a short bounded wait.
+   const roleLookups=Promise.all([
+    supabase.from("profiles").select("role").eq("id",userId).maybeSingle(),
     supabase.from("coordinator_assignments").select("role").eq("user_id",userId)
    ]);
-   const role=profile?.role||assignments?.[0]?.role||"member";
-   const isAdmin=role==="national_admin"||assignments?.some(a=>a.role==="national_admin");
-   const isCoordinator=["ward_coordinator","lga_coordinator","state_coordinator"].includes(role)||assignments?.some(a=>["ward_coordinator","lga_coordinator","state_coordinator"].includes(a.role));
+   const timeout=new Promise<null>(resolve=>setTimeout(()=>resolve(null),8000));
+   const lookupResult=await Promise.race([roleLookups,timeout]);
+   const profile=lookupResult?.[0]?.data;
+   const assignments=lookupResult?.[1]?.data||[];
+   const role=profile?.role||assignments[0]?.role||"member";
+   const isAdmin=role==="national_admin"||assignments.some(a=>a.role==="national_admin");
+   const isCoordinator=["ward_coordinator","lga_coordinator","state_coordinator"].includes(role)||assignments.some(a=>["ward_coordinator","lga_coordinator","state_coordinator"].includes(a.role));
    router.replace(isAdmin?"/admin":isCoordinator?"/coordinator":"/member");
   }catch(err){setMessage(err instanceof Error?err.message:"Unable to sign in. Please try again.");}
   finally{setBusy(false);}
