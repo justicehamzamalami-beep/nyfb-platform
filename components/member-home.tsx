@@ -140,7 +140,7 @@ export default function MemberHome() {
         <div className="brand member-brand" style={{marginTop:24}}><img src={NYFB_LOGO_URL} alt="NYFB official logo" /><span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span></div>
         <button className="member-menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="member-sidebar" onClick={()=>setMenuOpen(v=>!v)}><span>☰</span> Dashboard menu <span className="menu-toggle-state">{menuOpen?"Close":"Open"}</span></button>
         <div className="member-dashboard-layout">
-          <aside hidden={!menuOpen} aria-hidden={!menuOpen} style={{display:menuOpen?"flex":"none"}} className={"member-sidebar"+(menuOpen?" is-open":"")} id="member-sidebar">
+          <aside hidden={!menuOpen} aria-hidden={!menuOpen} className={"member-sidebar"+(menuOpen?" is-open":"")} id="member-sidebar">
             <div className="sidebar-label">MEMBER MENU</div>
             <Link href="/member" onClick={()=>setMenuOpen(false)}><span>⌂</span> Overview</Link>
             <Link href="/member/profile" onClick={()=>setMenuOpen(false)}><span>◉</span> My profile</Link>
