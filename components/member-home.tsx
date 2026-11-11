@@ -24,7 +24,8 @@ export default function MemberHome() {
         const supabase=createClient();
         const {data:{user},error:authError}=await supabase.auth.getUser();
         if(authError||!user){window.location.replace("/login");return;}
-        const lagosDay=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Lagos",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+        const lagosParts=new Intl.DateTimeFormat("en-GB",{timeZone:"Africa/Lagos",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+        const lagosDay=`${lagosParts.find(part=>part.type==="year")?.value}-${lagosParts.find(part=>part.type==="month")?.value}-${lagosParts.find(part=>part.type==="day")?.value}`;
         await supabase.from("reward_transactions").insert({user_id:user.id,amount_ngn:250,reward_type:"daily_login",description:"Daily NYFB member login reward",source_key:lagosDay});
         const [memberResult,announcementResult,taskResult,attendanceResult,referralResult,rewardResult]=await Promise.all([
           supabase.from("members").select("member_number,referral_code,full_name,status,state,lga,ward,reviewed_at").eq("user_id",user.id).maybeSingle(),
