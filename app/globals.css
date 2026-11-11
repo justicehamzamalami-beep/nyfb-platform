@@ -194,3 +194,14 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
 @media(max-width:480px){
  .member-section-page .member-summary .member-avatar-wrap{width:46px!important;height:46px!important;min-width:46px!important;max-width:46px!important;flex-basis:46px!important}
 }
+
+/* NYFB homepage: blended presidential hero portrait */
+.hero{isolation:isolate}
+.hero-president-image{position:absolute;z-index:1;right:3%;bottom:0;width:min(56%,760px);height:100%;display:flex;align-items:flex-end;justify-content:flex-end;overflow:hidden;pointer-events:none}
+.hero-president-image img{display:block;width:100%;height:100%;max-height:100%;object-fit:contain;object-position:right bottom;opacity:.78;mix-blend-mode:screen;filter:contrast(1.06) saturate(.82);-webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 15%,#000 42%,#000 86%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 15%,#000 42%,#000 86%,transparent 100%)}
+.hero-copy{z-index:3}
+.hero-foot{z-index:3}
+.orbit{display:none}
+.hero:after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;background:linear-gradient(90deg,#103d2b 0%,#103d2b 34%,rgba(16,61,43,.84) 49%,rgba(16,61,43,.12) 78%,rgba(16,61,43,.24) 100%)}
+@media(max-width:850px){.hero-president-image{right:-5%;width:62%;opacity:.72}.hero:after{background:linear-gradient(90deg,#103d2b 0%,rgba(16,61,43,.97) 36%,rgba(16,61,43,.72) 62%,rgba(16,61,43,.28) 100%)}}
+@media(max-width:620px){.hero{min-height:680px}.hero-president-image{right:-12%;width:100%;height:67%;opacity:.38}.hero-president-image img{object-position:right bottom;-webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.4) 18%,#000 50%,#000 90%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.4) 18%,#000 50%,#000 90%,transparent 100%)}.hero:after{background:linear-gradient(180deg,#103d2b 0%,rgba(16,61,43,.98) 38%,rgba(16,61,43,.66) 70%,rgba(16,61,43,.25) 100%)}.hero-copy{max-width:100%}.hero h1{position:relative}.hero-foot{bottom:18px}}
