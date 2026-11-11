@@ -258,6 +258,38 @@ export default function MemberHome() {
           .membership-card .card-bottom{font-size:6px!important;gap:6px!important}
         }
 
+
+        /* NYFB portrait ID card redesign — matches the emailed PDF */
+        .membership-card-section{max-width:430px!important;margin:30px auto 0!important}
+        .membership-card{width:min(100%,330px)!important;max-width:330px!important;aspect-ratio:54/85.6!important;min-height:0!important;padding:16px 15px!important;gap:10px!important;border:2px solid #d4b45f!important;border-radius:15px!important;background:#f9f6e9!important;color:#172d20!important;box-shadow:0 16px 38px #00190e55!important}
+        .membership-card:before{inset:5px!important;border:1px solid #c7aa5d88!important;border-radius:10px!important;background:none!important}
+        .membership-card:after{display:none!important}
+        .membership-card .card-top{margin:-16px -15px 0!important;padding:13px 10px 11px!important;min-height:94px!important;box-sizing:border-box!important;background:#062d1e!important;border-bottom:3px solid #d4b45f!important;gap:7px!important}
+        .membership-card .card-logos{display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important}
+        .membership-card .card-emblem,.membership-card .apc-emblem{width:39px!important;height:39px!important;flex:0 0 39px!important;border-radius:5px!important;background:#fff!important;border:1px solid #d4b45f!important;padding:3px!important;box-sizing:border-box!important}
+        .membership-card .card-emblem img,.membership-card .apc-emblem img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important}
+        .membership-card .card-brand-copy strong{display:block!important;color:#fff!important;font-size:11px!important;letter-spacing:.8px!important}
+        .membership-card .card-brand-copy small{display:block!important;color:#e8d99e!important;font-size:6px!important;letter-spacing:1.1px!important}
+        .membership-card .card-approved{margin:0!important;padding:4px 8px!important;color:#f9f0d2!important;border:1px solid #d4b45f!important;background:#ffffff10!important;font-size:6px!important}
+        .membership-card .card-role{margin:0!important;text-align:center!important;color:#082b1d!important;background:linear-gradient(90deg,#c9a64d,#f0df9a,#c9a64d)!important;border-radius:3px!important;padding:7px 5px!important;font-size:10px!important;letter-spacing:1.5px!important}
+        .membership-card .card-main{display:flex!important;flex-direction:column!important;align-items:center!important;gap:7px!important;margin:0!important;text-align:center!important}
+        .membership-card .card-avatar{width:77px!important;height:80px!important;flex:0 0 80px!important;border:2px solid #c9a64d!important;border-radius:5px!important;background:#e7eadf!important;box-shadow:none!important}
+        .membership-card .card-avatar img{width:100%!important;height:100%!important;object-fit:cover!important}
+        .membership-card .card-details{width:100%!important;text-align:center!important;color:#172d20!important}
+        .membership-card .card-details small{color:#637166!important;font-size:6px!important;letter-spacing:1px!important}
+        .membership-card .card-details .card-eyebrow{color:#1c6843!important;margin-bottom:4px!important}
+        .membership-card .card-details h2{color:#10291c!important;font-size:14px!important;line-height:1.15!important;margin:4px 0 7px!important}
+        .membership-card .card-id-block{display:block!important;border:0!important;border-top:1px solid #d7c58c!important;padding:6px 0 0!important}
+        .membership-card .card-id-block small{color:#637166!important}
+        .membership-card .card-id-block strong{display:block!important;color:#075133!important;font-size:12px!important;letter-spacing:1.2px!important;margin-top:3px!important}
+        .membership-card .card-location{color:#243b2d!important;font-size:7px!important;line-height:1.3!important;margin-top:6px!important}
+        .membership-card .card-location span{color:#637166!important;font-size:6px!important;margin-bottom:2px!important}
+        .membership-card .card-bottom{border-top:1px solid #d7c58c!important;padding-top:7px!important;color:#31513c!important;font-size:5.5px!important;letter-spacing:.25px!important}
+        .membership-card .card-bottom b{color:#075133!important}
+        .print-card{display:block!important;width:min(100%,330px)!important;margin:16px auto 0!important;background:#c9a64d!important;border:1px solid #e5d49a!important;color:#092b1d!important}
+        .card-note{text-align:center!important;color:#d6f3df!important;font-size:11px!important;line-height:1.6!important}
+        @media(max-width:620px){.membership-card{width:min(100%,330px)!important;padding:14px 13px!important}.membership-card .card-top{margin:-14px -13px 0!important}.membership-card .card-avatar{width:72px!important;height:75px!important;flex-basis:75px!important}.membership-card .card-details h2{font-size:13px!important}}
+
 `}</style>   </main>
   );
 }
