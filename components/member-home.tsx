@@ -132,22 +132,24 @@ export default function MemberHome() {
       const pageW=85.6*72/25.4,pageH=54*72/25.4;
       const enc=new TextEncoder();const chunks=[];let length=0;const offsets=[0];
       const push=(part)=>{const bytes=typeof part==="string"?enc.encode(part):part;chunks.push(bytes);length+=bytes.length;};
-      push("%PDF-1.4\\n%NYFB\\n");
+      push("%PDF-1.4\n%NYFB\n");
+      const contentStream=`q\n${pageW.toFixed(3)} 0 0 ${pageH.toFixed(3)} 0 0 cm\n/Card Do\nQ\n`;
+      const contentLength=enc.encode(contentStream).length;
       const objects=[
         "<< /Type /Catalog /Pages 2 0 R >>",
         "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
         `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW.toFixed(3)} ${pageH.toFixed(3)}] /Resources << /XObject << /Card 4 0 R >> >> /Contents 5 0 R >>`,
-        `<< /Type /XObject /Subtype /Image /Width 1712 /Height 1080 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\\nstream\\n`,
-        `<< /Length 38 >>\\nstream\\nq\\n${pageW.toFixed(3)} 0 0 ${pageH.toFixed(3)} 0 0 cm\\n/Card Do\\nQ\\nendstream`
+        `<< /Type /XObject /Subtype /Image /Width 1712 /Height 1080 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\nstream\n`,
+        `<< /Length ${contentLength} >>\nstream\n${contentStream}endstream`
       ];
       for(let i=0;i<objects.length;i++){
-        offsets.push(length);push(`${i+1} 0 obj\\n`);
-        if(i===3){push(objects[i]);push(imageBytes);push("\\nendstream\\nendobj\\n");}
-        else push(objects[i]+"\\nendobj\\n");
+        offsets.push(length);push(`${i+1} 0 obj\n`);
+        if(i===3){push(objects[i]);push(imageBytes);push("\nendstream\nendobj\n");}
+        else push(objects[i]+"\nendobj\n");
       }
-      const xref=length;push(`xref\\n0 6\\n0000000000 65535 f \\n`);
-      for(let i=1;i<offsets.length;i++)push(String(offsets[i]).padStart(10,"0")+" 00000 n \\n");
-      push(`trailer\\n<< /Size 6 /Root 1 0 R >>\\nstartxref\\n${xref}\\n%%EOF`);
+      const xref=length;push(`xref\n0 6\n0000000000 65535 f \n`);
+      for(let i=1;i<offsets.length;i++)push(String(offsets[i]).padStart(10,"0")+" 00000 n \n");
+      push(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
       const pdfBlob=new Blob(chunks,{type:"application/pdf"});
       const url=URL.createObjectURL(pdfBlob);const link=document.createElement("a");
       link.href=url;link.download="NYFB-Membership-Card-"+(member?.member_number||"ID")+".pdf";
