@@ -184,3 +184,47 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
   .hero h1{position:relative}
   .hero-foot{bottom:18px}
 }
+
+
+/* Member portal navigation: keep every menu item hidden until the member opens the menu */
+.member-menu-toggle{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:100%!important;
+  margin:18px 0 12px!important;
+  padding:13px 16px!important;
+  border:1px solid #d6e5d9!important;
+  border-radius:10px!important;
+  background:#073b2b!important;
+  color:#fff!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  cursor:pointer!important;
+}
+.member-menu-toggle:hover{background:#11734b!important}
+.member-dashboard-layout{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:14px!important;
+  margin-top:0!important;
+}
+.member-dashboard-layout>.member-sidebar:not(.is-open){display:none!important}
+.member-dashboard-layout>.member-sidebar.is-open{
+  display:flex!important;
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  min-height:0!important;
+  margin:0 0 4px!important;
+  order:0!important;
+}
+.member-dashboard-layout>.member-main-content{width:100%!important;order:1!important}
+.member-dashboard-layout>.member-sidebar.is-open>a{
+  display:flex!important;
+  width:100%!important;
+}
+@media(max-width:620px){
+  .member-menu-toggle{margin-top:12px!important}
+  .member-dashboard-layout>.member-sidebar.is-open{padding:13px 10px!important}
+}
