@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 const NYFB_LOGO_URL = "https://brpqtdqejvlxsyzlyrfv.supabase.co/storage/v1/object/public/nyfb-site-media/website/logo/15fe9ad9-01c7-4bb6-873e-bc8ba989018d.jpg";
+const APC_LOGO_URL = "https://cdn.legit.ng/images/1120/c80c390d3b880d90.jpeg?v=1";
 
 type Member = { member_number:string; referral_code:string; full_name:string; status:string; state:string; lga:string; ward:string|null; reviewed_at:string|null };
 type Announcement = { id:string; title:string; body:string; audience:string; target_state:string|null; published_at:string|null; created_at:string };
@@ -169,7 +170,7 @@ export default function MemberHome() {
                 <div className="card-top">
                   <div className="card-logos">
                     <div className="card-emblem"><img src={NYFB_LOGO_URL} alt="NYFB official logo" crossOrigin="anonymous" /></div>
-                    <div className="apc-emblem" aria-label="APC"><span className="apc-colours"><i/><i/><i/></span><strong>APC</strong></div>
+                    <div className="apc-emblem"><img src={APC_LOGO_URL} alt="All Progressives Congress official logo" /></div>
                   </div>
                   <div className="card-brand-copy"><strong>NIGERIAN YOUTH FOR BAT</strong><small>OFFICIAL MEMBER IDENTIFICATION</small></div>
                   <span className="card-approved"><i/> VERIFIED</span>
@@ -234,12 +235,8 @@ export default function MemberHome() {
         .membership-card .card-logos{display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important}
         .membership-card .card-emblem,.membership-card .apc-emblem{width:48px!important;height:48px!important;flex:0 0 48px!important;border-radius:10px!important;background:#fff!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:4px!important;box-sizing:border-box!important}
         .membership-card .card-emblem img{width:100%!important;height:100%!important;object-fit:contain!important}
-        .membership-card .apc-emblem{flex-direction:column!important;gap:1px!important;color:#c31f32!important;font-weight:900!important;font-size:14px!important;border:1px solid #e7e7e7!important}
-        .membership-card .apc-colours{height:23px!important;width:30px!important;display:flex!important;overflow:hidden!important;border:1px solid #ddd!important}
-        .membership-card .apc-colours i{display:block!important;flex:1!important}
-        .membership-card .apc-colours i:nth-child(1){background:#168b45!important}
-        .membership-card .apc-colours i:nth-child(2){background:#fff!important}
-        .membership-card .apc-colours i:nth-child(3){background:#168b45!important}
+        .membership-card .apc-emblem{border:1px solid #e7e7e7!important;overflow:hidden!important}
+        .membership-card .apc-emblem img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important}
         .membership-card .card-brand-copy strong{font-size:13px!important;letter-spacing:1px!important}
         .membership-card .card-brand-copy small{font-size:7px!important;letter-spacing:1.5px!important}
         .membership-card .card-approved{margin:0!important;font-size:8px!important}
