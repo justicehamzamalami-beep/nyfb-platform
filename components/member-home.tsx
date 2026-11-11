@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
+const NYFB_LOGO_URL = "https://brpqtdqejvlxsyzlyrfv.supabase.co/storage/v1/object/public/nyfb-site-media/website/logo/15fe9ad9-01c7-4bb6-873e-bc8ba989018d.jpg";
+
 type Member = { member_number:string; referral_code:string; full_name:string; status:string; state:string; lga:string; ward:string|null; reviewed_at:string|null };
 type Announcement = { id:string; title:string; body:string; audience:string; target_state:string|null; published_at:string|null; created_at:string };
 
@@ -101,8 +103,23 @@ export default function MemberHome() {
       const brand=top?.querySelector("strong")?.textContent?.trim()||"NIGERIAN YOUTH FOR BAT";
       const sub=top?.querySelector("small")?.textContent?.trim()||"OFFICIAL MEMBERSHIP CARD";
       const approved=top?.querySelector(".card-approved")?.textContent?.trim()||"APPROVED";
-      ctx.beginPath();ctx.arc(125,125,78,0,Math.PI*2);ctx.strokeStyle="#b8f5c9";ctx.lineWidth=5;ctx.stroke();
-      ctx.fillStyle="#b8f5c9";ctx.font="bold 76px Arial";ctx.textAlign="center";ctx.fillText("NY",125,151);
+      const logoImage = new Image();
+      logoImage.crossOrigin = "anonymous";
+      logoImage.src = NYFB_LOGO_URL;
+      try {
+        await new Promise<void>((resolve, reject) => {
+          logoImage.onload = () => resolve();
+          logoImage.onerror = () => reject(new Error("NYFB logo could not be loaded"));
+        });
+        ctx.save();ctx.beginPath();ctx.roundRect(48,48,154,154,22);ctx.clip();
+        ctx.fillStyle="#fff";ctx.fillRect(48,48,154,154);
+        const scale=Math.min(142/logoImage.naturalWidth,142/logoImage.naturalHeight);
+        const w=logoImage.naturalWidth*scale,h=logoImage.naturalHeight*scale;
+        ctx.drawImage(logoImage,125-w/2,125-h/2,w,h);ctx.restore();
+      } catch {
+        ctx.beginPath();ctx.arc(125,125,78,0,Math.PI*2);ctx.strokeStyle="#b8f5c9";ctx.lineWidth=5;ctx.stroke();
+        ctx.fillStyle="#b8f5c9";ctx.font="bold 76px Arial";ctx.textAlign="center";ctx.fillText("NY",125,151);
+      }
       ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="bold 43px Arial";ctx.fillText(brand,235,105,1120);
       ctx.font="26px Arial";ctx.fillText(sub,235,151);
       ctx.textAlign="right";ctx.fillStyle="#b8f5c9";ctx.font="bold 28px Arial";ctx.fillText(approved,1640,112);
@@ -184,7 +201,7 @@ export default function MemberHome() {
       <section className="member-space">
         <div className="member-actions"><Link className="back-home" href="/">← NYFB home</Link><button onClick={signOut} className="back-home sign-out">Sign out</button></div>
 
-        <div className="brand member-brand" style={{marginTop:24}}><b>NY</b><span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span></div>
+        <div className="brand member-brand" style={{marginTop:24}}><img src={NYFB_LOGO_URL} alt="NYFB official logo" /><span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span></div>
         <button className="member-menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="member-sidebar" onClick={()=>setMenuOpen(v=>!v)}><span>☰</span> Dashboard menu <span className="menu-toggle-state">{menuOpen?"Close":"Open"}</span></button>
         <div className="member-dashboard-layout">
           <aside className={"member-sidebar"+(menuOpen?" is-open":"")} id="member-sidebar">
@@ -212,7 +229,7 @@ export default function MemberHome() {
           {member.status==="approved"?(
             <section className="membership-card-section" id="membership-card">
               <div className="membership-card" id="nyfb-membership-card">
-                <div className="card-top"><div className="card-emblem">NY</div><div><strong>NIGERIAN YOUTH FOR BAT</strong><small>OFFICIAL MEMBERSHIP CARD</small></div><span className="card-approved">APPROVED</span></div>
+                <div className="card-top"><div className="card-emblem"><img src={NYFB_LOGO_URL} alt="NYFB logo" crossOrigin="anonymous" /></div><div><strong>NIGERIAN YOUTH FOR BAT</strong><small>OFFICIAL MEMBERSHIP CARD</small></div><span className="card-approved">APPROVED</span></div>
                 <div className="card-main"><div className="card-avatar">{avatarUrl?<img src={avatarUrl} alt="Member profile" />:"NYFB"}</div><div className="card-details"><small>MEMBER NAME</small><h2>{member.full_name}</h2><small>MEMBERSHIP ID</small><strong>{member.member_number}</strong><div className="card-location">{member.ward?member.ward+", ":""}{member.lga}, {member.state}</div></div></div>
                 <div className="card-bottom"><span>VALID NYFB MEMBER</span><span>{member.reviewed_at?"ISSUED "+new Date(member.reviewed_at).toLocaleDateString("en-NG"):"OFFICIAL RECORD"}</span></div>
               </div>
@@ -254,7 +271,7 @@ export default function MemberHome() {
         .member-announcements{margin-top:30px}.member-section-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px}.member-section-head small{font-size:9px;letter-spacing:1.4px;color:#b8f5c9;font-weight:800}.member-section-head h2{font:800 22px Manrope;margin:5px 0 0;color:#fff}.member-section-head>span{font-size:10px;color:#d1eadd}
         .member-announcements article{padding:17px 0;border-bottom:1px solid #277449}.announcement-date{font-size:9px;color:#d1eadd}.member-announcements article h3{font:700 15px Manrope,Arial;margin:7px 0;color:#fff}.member-announcements article p,.no-announcements{font-size:12px;line-height:1.8;color:#e1f3e6;white-space:pre-wrap;margin:0}.member-announcements article>small{display:block;font-size:9px;color:#b8f5c9;margin-top:8px}.no-announcements{padding:16px;background:#0a5632;border-radius:8px}
         .membership-note{margin-top:20px;padding:16px;background:#0a5632;border:1px solid #388a58;border-left:4px solid #b8f5c9;color:#f0fff3;line-height:1.7}.membership-card-section{margin-top:30px}.membership-card{box-sizing:border-box;color:#fff;background:linear-gradient(125deg,#022819,#07502e 58%,#1b8a4a);border:1px solid #b8f5c9;border-radius:12px;padding:18px;min-height:0;aspect-ratio:85.6/54;width:min(100%,540px);box-shadow:0 12px 30px #00170d88;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
-        .card-top{display:flex;align-items:center;gap:12px}.card-emblem{width:44px;height:44px;border:2px solid #c4f7d0;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#d8ffe1}.card-top strong,.card-top small{display:block}.card-top strong{font-size:13px;letter-spacing:1px}.card-top small{font-size:9px;opacity:.85;margin-top:4px;letter-spacing:1px}.card-approved{margin-left:auto;font-size:9px;letter-spacing:1px;border:1px solid #c4f7d0;color:#eaffef;padding:6px 8px;border-radius:20px}
+        .card-top{display:flex;align-items:center;gap:12px}.card-emblem{width:58px;height:58px;flex:0 0 58px;border:2px solid #c4f7d0;border-radius:10px;display:grid;place-items:center;overflow:hidden;background:#fff;padding:3px}.card-emblem img{width:100%;height:100%;object-fit:contain}.member-brand>img{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:9px;padding:3px}.card-top strong,.card-top small{display:block}.card-top strong{font-size:13px;letter-spacing:1px}.card-top small{font-size:9px;opacity:.85;margin-top:4px;letter-spacing:1px}.card-approved{margin-left:auto;font-size:9px;letter-spacing:1px;border:1px solid #c4f7d0;color:#eaffef;padding:6px 8px;border-radius:20px}
         .card-main{display:flex;gap:18px;align-items:center;margin:26px 0}.card-avatar{width:78px;height:94px;border:1px solid #ffffff88;border-radius:8px;display:grid;place-items:center;overflow:hidden;font-weight:800;color:#d8ffe1;background:#ffffff12}.card-avatar img{width:100%;height:100%;object-fit:cover}.card-details small{display:block;font-size:8px;letter-spacing:1.5px;opacity:.85}.card-details h2{font-size:20px;margin:5px 0 12px}.card-details strong{display:block;font-size:14px;letter-spacing:1px;margin-top:4px}.card-location{font-size:11px;margin-top:9px;opacity:.9}.card-bottom{border-top:1px solid #ffffff55;padding-top:12px;display:flex;justify-content:space-between;gap:8px;font-size:8px;letter-spacing:1px}.print-card{margin-top:16px;width:min(100%,700px);background:#b8f5c9;border-color:#d4ffe0;color:#04331f}.card-note{font-size:12px;color:#d6f3df}
         @media(max-width:760px){.member-dashboard-layout{display:block;margin-top:12px}.member-menu-toggle{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;margin:0 0 10px;background:#b8f5c9;color:#04331f;border:0;border-radius:8px;font-size:12px;font-weight:900;text-align:left}.member-menu-toggle>span:first-child{font-size:17px}.menu-toggle-state{margin-left:auto;font-size:10px}.member-sidebar{display:none;position:static;min-height:0;margin-bottom:16px}.member-sidebar.is-open{display:flex}.sidebar-footer{margin-top:8px}.member-activity{grid-template-columns:repeat(2,minmax(0,1fr))}.member-referral-box{display:block}.member-referral-box button{margin-top:12px}.member-dashboard-shell{padding:12px 10px 35px}.member-space{padding:20px 15px;border-radius:13px}.member-heading{display:block}.member-portal-tag{display:inline-block;margin-top:13px}.member-navigation{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px}.member-navigation a{font-size:10px;min-height:40px;padding:8px}.card-main{gap:12px}.card-details h2{font-size:17px}.card-top strong{font-size:10px}.member-welcome-row{align-items:flex-start;padding:13px}.member-avatar-wrap{width:60px;height:60px;flex-basis:60px}}
 `}</style>   </main>
