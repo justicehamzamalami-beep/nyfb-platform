@@ -34,6 +34,14 @@ export default function LoginForm() {
       );
       if (error) throw error;
       if (!authData.user) throw new Error("Sign-in could not be completed. Please try again.");
+      const { error: activationError } = await withTimeout(
+        supabase.rpc("activate_own_membership"),
+        7000,
+        "Your account is signed in, but membership activation is taking too long. Please try again."
+      );
+      if (activationError) {
+        throw new Error("Your account is signed in, but membership activation could not be completed. Please try signing in again.");
+      }
 
       // A failed optional permissions lookup must never lock out an authenticated member.
       let role = "member";
