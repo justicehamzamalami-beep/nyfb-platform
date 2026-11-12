@@ -31,7 +31,8 @@ export default function JoinForm() {
           gender: String(v.gender||""), date_of_birth: String(v.date_of_birth||""),
           state: String(v.state).trim(), lga: String(v.lga).trim(),
           ward: String(v.ward||"").trim(), occupation: String(v.occupation||"").trim(),
-          referral_code: referralCode
+          referral_code: referralCode,
+          browser_registration_key: localStorage.getItem("nyfb-registration-device-token") || ""
         }}
       }),20000);
       if(error) throw error;
