@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -34,41 +34,71 @@ export default function AdminWorkspace(){
  const [busy,setBusy]=useState("");
  const [form,setForm]=useState(initialForm);
  const supabase=useMemo(()=>createClient(),[]);
+ const loadInProgress=useRef(false);
+ const reloadQueued=useRef(false);
  const isNationalAdmin=role==="national_admin";
 
  async function load(){
+  if(loadInProgress.current){reloadQueued.current=true;return;}
+  loadInProgress.current=true;
   setLoading(true);setError("");
-  const {data:{user},error:authError}=await supabase.auth.getUser();
-  if(authError||!user){window.location.assign("/login");return;}
-  const [profileResult,assignmentResult,memberResult,announcementResult,activityResult,eventsResult,tasksResult,groupsResult,welfareResult,campusResult,attendanceResult,bankResult]=await Promise.all([
-   supabase.from("profiles").select("role").eq("id",user.id).single(),
-   supabase.from("coordinator_assignments").select("role,state,lga,ward").eq("user_id",user.id),
-   supabase.from("members").select("id,user_id,member_number,full_name,email,phone,state,lga,ward,status,submitted_at,rejection_reason").order("submitted_at",{ascending:false}).limit(1000),
-   supabase.from("announcements").select("id,title,body,audience,target_state,published,published_at,created_at").order("created_at",{ascending:false}).limit(100),
-   supabase.from("audit_logs").select("id,actor_id,action,entity_type,entity_id,details,created_at").order("created_at",{ascending:false}).limit(30),
-   supabase.from("events").select("id,status"),
-   supabase.from("volunteer_tasks").select("id,status"),
-   supabase.from("support_groups").select("id,status"),
-   supabase.from("welfare_applications").select("id,status"),
-   supabase.from("campus_mobilizers").select("id,status"),
-   supabase.from("event_attendance").select("id"),
-   supabase.from("member_bank_accounts").select("user_id,bank_name,account_number,account_name,verification_status,submitted_at").order("submitted_at",{ascending:false}).limit(1000)
-  ]);
-  if(profileResult.error){setError(profileResult.error.message);setLoading(false);return;}
-  const pRole=profileResult.data?.role||"member";
-  const assigned=(assignmentResult.data||[]) as Assignment[];
-  const effectiveRole=pRole==="national_admin"?"national_admin":(assigned.find(a=>allowed.includes(a.role))?.role||pRole);
-  setRole(effectiveRole);setAssignments(assigned);
-  if(!allowed.includes(effectiveRole)){setError("Your account does not have coordinator or national administrator access.");setMembers([]);}
-  else if(memberResult.error){setError(memberResult.error.message);}
-  else setMembers((memberResult.data||[]) as Member[]);
-  if(!bankResult.error)setBankAccounts((bankResult.data||[]) as BankAccount[]);
-  if(!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
-  if(!activityResult.error)setActivity((activityResult.data||[]) as Activity[]);
-  setProgrammeCounts({events:eventsResult.data?.length||0,tasks:tasksResult.data?.length||0,groups:groupsResult.data?.length||0,welfare:welfareResult.data?.length||0,campus:campusResult.data?.length||0,attendance:attendanceResult.data?.length||0});
-  setLoading(false);
+  let timeoutId:ReturnType<typeof setTimeout>|undefined;
+  try{
+   const work=(async()=>{
+    const {data:{user},error:authError}=await supabase.auth.getUser();
+    if(authError||!user){window.location.assign("/login");return;}
+    const [profileResult,assignmentResult,memberResult,announcementResult,activityResult,eventsResult,tasksResult,groupsResult,welfareResult,campusResult,attendanceResult,bankResult]=await Promise.all([
+     supabase.from("profiles").select("role").eq("id",user.id).maybeSingle(),
+     supabase.from("coordinator_assignments").select("role,state,lga,ward").eq("user_id",user.id),
+     supabase.from("members").select("id,user_id,member_number,full_name,email,phone,state,lga,ward,status,submitted_at,rejection_reason").order("submitted_at",{ascending:false}).limit(1000),
+     supabase.from("announcements").select("id,title,body,audience,target_state,published,published_at,created_at").order("created_at",{ascending:false}).limit(100),
+     supabase.from("audit_logs").select("id,actor_id,action,entity_type,entity_id,details,created_at").order("created_at",{ascending:false}).limit(30),
+     supabase.from("events").select("id,status"),
+     supabase.from("volunteer_tasks").select("id,status"),
+     supabase.from("support_groups").select("id,status"),
+     supabase.from("welfare_applications").select("id,status"),
+     supabase.from("campus_mobilizers").select("id,status"),
+     supabase.from("event_attendance").select("id"),
+     supabase.from("member_bank_accounts").select("user_id,bank_name,account_number,account_name,verification_status,submitted_at").order("submitted_at",{ascending:false}).limit(1000)
+    ]);
+    if(profileResult.error)throw new Error("Could not load your account permissions: "+profileResult.error.message);
+    if(memberResult.error)throw new Error("Could not load membership applications: "+memberResult.error.message);
+    if(assignmentResult.error)throw new Error("Could not load coordinator permissions: "+assignmentResult.error.message);
+    const pRole=profileResult.data?.role||"member";
+    const assigned=(assignmentResult.data||[]) as Assignment[];
+    const effectiveRole=pRole==="national_admin"?"national_admin":(assigned.find(a=>allowed.includes(a.role))?.role||pRole);
+    setRole(effectiveRole);setAssignments(assigned);
+    if(!allowed.includes(effectiveRole)){setError("Your account does not have coordinator or national administrator access.");setMembers([]);}
+    else setMembers((memberResult.data||[]) as Member[]);
+    if(!bankResult.error)setBankAccounts((bankResult.data||[]) as BankAccount[]);
+    if(!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
+    if(!activityResult.error)setActivity((activityResult.data||[]) as Activity[]);
+    setProgrammeCounts({events:eventsResult.data?.length||0,tasks:tasksResult.data?.length||0,groups:groupsResult.data?.length||0,welfare:welfareResult.data?.length||0,campus:campusResult.data?.length||0,attendance:attendanceResult.data?.length||0});
+   })();
+   const timeout=new Promise<never>((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error("The dashboard is taking too long to load. Check your connection and try again.")),15000);});
+   await Promise.race([work,timeout]);
+  }catch(e){setError(e instanceof Error?e.message:"The dashboard could not be loaded. Please try again.");}
+  finally{
+   if(timeoutId)clearTimeout(timeoutId);
+   setLoading(false);
+   loadInProgress.current=false;
+   if(reloadQueued.current){reloadQueued.current=false;setTimeout(()=>void load(),350);}
+  }
  }
- useEffect(()=>{void load();const channel=supabase.channel("nyfb-admin-live").on("postgres_changes",{event:"*",schema:"public",table:"members"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"announcements"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"audit_logs"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"events"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"volunteer_tasks"},()=>{void load();}).on("postgres_changes",{event:"*",schema:"public",table:"event_attendance"},()=>{void load();}).subscribe();return()=>{void supabase.removeChannel(channel);};},[]);
+ useEffect(()=>{
+  void load();
+  let refreshTimer:ReturnType<typeof setTimeout>|undefined;
+  const refresh=()=>{if(refreshTimer)clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>void load(),900);};
+  const channel=supabase.channel("nyfb-admin-live")
+   .on("postgres_changes",{event:"*",schema:"public",table:"members"},refresh)
+   .on("postgres_changes",{event:"*",schema:"public",table:"announcements"},refresh)
+   .on("postgres_changes",{event:"*",schema:"public",table:"audit_logs"},refresh)
+   .on("postgres_changes",{event:"*",schema:"public",table:"events"},refresh)
+   .on("postgres_changes",{event:"*",schema:"public",table:"volunteer_tasks"},refresh)
+   .on("postgres_changes",{event:"*",schema:"public",table:"event_attendance"},refresh)
+   .subscribe();
+  return()=>{if(refreshTimer)clearTimeout(refreshTimer);void supabase.removeChannel(channel);};
+ },[]);
 
  const counts={all:members.length,pending:members.filter(m=>m.status==="pending").length,approved:members.filter(m=>m.status==="approved").length,rejected:members.filter(m=>m.status==="rejected").length,suspended:members.filter(m=>m.status==="suspended").length};
  const visible=members.filter(m=>(filter==="all"||m.status===filter)&&[m.full_name,m.member_number,m.email||"",m.phone,m.state,m.lga,m.ward||""].join(" ").toLowerCase().includes(search.toLowerCase()));
