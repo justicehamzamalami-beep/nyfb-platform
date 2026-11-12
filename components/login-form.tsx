@@ -39,7 +39,7 @@ export default function LoginForm() {
       let role = "member";
       try {
         const profile = await withTimeout(
-          supabase.from("profiles").select("role").eq("id", authData.user.id).maybeSingle(),
+          Promise.resolve(supabase.from("profiles").select("role").eq("id", authData.user.id).maybeSingle()),
           7000,
           "Profile lookup timed out"
         );
@@ -55,7 +55,7 @@ export default function LoginForm() {
       let coordinator = false;
       try {
         const assignments = await withTimeout(
-          supabase.from("coordinator_assignments").select("role").eq("user_id", authData.user.id),
+          Promise.resolve(supabase.from("coordinator_assignments").select("role").eq("user_id", authData.user.id)),
           5000,
           "Coordinator lookup timed out"
         );
