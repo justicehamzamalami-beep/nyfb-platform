@@ -232,3 +232,12 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
 /* Final override: the member dashboard menu is closed unless explicitly opened */
 #member-sidebar[hidden]{display:none!important;visibility:hidden!important;pointer-events:none!important}
 #member-sidebar:not([hidden]){display:flex!important;visibility:visible!important;pointer-events:auto!important}
+
+
+/* Collapsible dashboard navigation: both portals open only on demand */
+.member-dashboard-layout{display:block!important;grid-template-columns:minmax(0,1fr)!important}
+.member-sidebar{position:fixed!important;z-index:1202!important;left:0!important;top:0!important;bottom:0!important;width:min(300px,86vw)!important;height:100dvh!important;overflow-y:auto!important;border-radius:0 16px 16px 0!important;transform:translateX(0)!important}
+.member-menu-backdrop{position:fixed!important;inset:0!important;z-index:1201!important;border:0!important;background:#071b12a6!important}
+.member-sidebar-close{display:block!important;margin:0 0 12px auto!important;width:34px!important;height:34px!important;border:1px solid #ffffff45!important;border-radius:8px!important;background:#ffffff15!important;color:#fff!important;font-size:23px!important;line-height:1!important;cursor:pointer!important}
+.member-menu-toggle{display:inline-flex!important;align-items:center!important;gap:9px!important;cursor:pointer!important}
+
