@@ -22,8 +22,6 @@ export default function MemberHome() {
   const [photoMessage,setPhotoMessage]=useState("");
   const [menuOpen,setMenuOpen]=useState(false);
   const [referralMessage,setReferralMessage]=useState("");
-  const [sendingCard,setSendingCard]=useState(false);
-  const [cardEmailMessage,setCardEmailMessage]=useState("");
 
   useEffect(()=>{
     let active=true;
@@ -97,32 +95,6 @@ export default function MemberHome() {
       setPhotoMessage("Profile picture updated successfully.");
     }catch(e){console.error("NYFB profile photo upload failed:",e);setPhotoMessage(e instanceof Error?e.message:"Unable to upload your picture. Check your connection and try again.");}
     finally{setUploadingPhoto(false);event.target.value="";}
-  }
-
-  async function emailMembershipCard(){
-    setSendingCard(true);
-    setCardEmailMessage("");
-    try{
-      const supabase=createClient();
-      const {data:{user},error:authError}=await supabase.auth.getUser();
-      if(authError||!user)throw new Error("Please sign in again and try once more.");
-      const {data,error}=await supabase.functions.invoke("send-member-id-card",{body:{}});
-      if(error){
-        let serverMessage="";
-        try{
-          const response=(error as {context?:Response}).context;
-          const body=response?await response.clone().json():null;
-          serverMessage=typeof body?.error==="string"?body.error:"";
-        }catch{}
-        throw new Error(serverMessage||error.message||"Unable to send your ID card.");
-      }
-      if(data?.error)throw new Error(data.error);
-      setCardEmailMessage("Your digital ID card has been sent to "+(data?.recipient||"your registered email address")+". Please check your Gmail inbox and spam folder.");
-    }catch(e){
-      setCardEmailMessage(e instanceof Error?e.message:"Unable to email your ID card. Please try again.");
-    }finally{
-      setSendingCard(false);
-    }
   }
 
   async function copyReferralLink(){
