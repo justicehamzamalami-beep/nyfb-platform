@@ -170,7 +170,7 @@ export default function AdminWorkspace(){
    {isNationalAdmin&&<Link href="/admin/coordinators" className="ny-programme-link"><span className="ny-link-icon">♙</span><span className="ny-link-label">Coordinators &amp; teams</span><b>→</b></Link>}
    {isNationalAdmin&&<Link href="/admin/website" className="ny-programme-link"><span className="ny-link-icon">▧</span><span className="ny-link-label">Website management</span><b>→</b></Link>}
    <div className="ny-side-caption ny-side-group">ACCOUNT &amp; SUPPORT</div>
-   <button type="button" className="ny-programme-link" onClick={()=>{setTab("profile");setNotice("");setError("");}}><span className="ny-link-icon">◎</span><span className="ny-link-label">My profile</span><b>→</b></button>
+   <button type="button" className="ny-programme-link" style={{background:"transparent",width:"100%",fontFamily:"inherit",textAlign:"left",cursor:"pointer"}} onClick={()=>{setTab("profile");setNotice("");setError("");}}><span className="ny-link-icon">◎</span><span className="ny-link-label">My profile</span><b>→</b></button>
    <Link href="/forgot-password" className="ny-programme-link"><span className="ny-link-icon">⚙</span><span className="ny-link-label">Password &amp; security</span><b>→</b></Link>
    <a href="mailto:nigerianyouthforbat@gmail.com" className="ny-programme-link"><span className="ny-link-icon">?</span><span className="ny-link-label">Help &amp; support</span><b>→</b></a>
    <Link href="/#about" className="ny-programme-link"><span className="ny-link-icon">ⓘ</span><span className="ny-link-label">About NYFB</span><b>→</b></Link>
