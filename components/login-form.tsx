@@ -3,6 +3,12 @@ import { FormEvent,useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+function withTimeout<T>(promise:Promise<T>,ms:number,message:string):Promise<T>{
+ return new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>reject(new Error(message)),ms);
+  promise.then(value=>{clearTimeout(timer);resolve(value);},error=>{clearTimeout(timer);reject(error);});
+ });
+}
 export default function LoginForm(){
  const router=useRouter();
  const [busy,setBusy]=useState(false);
@@ -12,19 +18,21 @@ export default function LoginForm(){
   const data=new FormData(e.currentTarget);
   try{
    const supabase=createClient();
-   const signIn=await Promise.race([
+   const signIn=await withTimeout(
     supabase.auth.signInWithPassword({email:String(data.get("email")).trim().toLowerCase(),password:String(data.get("password"))}),
-    new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("The sign-in service is taking too long. Please check your connection and try again.")),15000))
-   ]);
+    15000,
+    "The sign-in service is taking too long. Please check your connection and try again."
+   );
    if(signIn.error)throw signIn.error;
    const userId=signIn.data.user.id;
-   const roleLookups=await Promise.race([
+   const roleLookups=await withTimeout(
     Promise.all([
      supabase.from("profiles").select("role").eq("id",userId).maybeSingle(),
      supabase.from("coordinator_assignments").select("role").eq("user_id",userId)
     ]),
-    new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("Your password was accepted, but your dashboard permissions are taking too long to load. Please try signing in again shortly.")),12000))
-   ]);
+    12000,
+    "Your password was accepted, but your dashboard permissions are taking too long to load. Please try signing in again shortly."
+   );
    const [profileResult,assignmentResult]=roleLookups;
    if(profileResult.error)throw new Error("Your account is signed in, but its access level could not be checked. Please try again.");
    if(assignmentResult.error)throw new Error("Your account is signed in, but coordinator access could not be checked. Please try again.");
