@@ -32,7 +32,7 @@ export default function JoinForm() {
           state: String(v.state).trim(), lga: String(v.lga).trim(),
           ward: String(v.ward||"").trim(), occupation: String(v.occupation||"").trim(),
           referral_code: referralCode,
-          browser_registration_key: localStorage.getItem("nyfb-registration-device-token") || ""
+          browser_registration_key: registrationKey
         }}
       }),20000);
       if(error) throw error;
@@ -61,7 +61,7 @@ export default function JoinForm() {
       <div className="field"><label htmlFor="lga">Local government area *</label><input id="lga" name="lga" required placeholder="Your LGA"/></div>
       <div className="field full"><label htmlFor="ward">Ward</label><input id="ward" name="ward" placeholder="Your ward (if known)"/></div>
     </div>
-    <p style={{fontSize:11,lineHeight:1.7}}>By submitting, you confirm that the information provided is accurate and consent to its use for NYFB membership administration. Your NIN is stored separately and is not displayed on your public membership card.</p>
+    <p style={{fontSize:11,lineHeight:1.7}}>By submitting, you confirm that the information provided is accurate and consent to its use for NYFB membership administration. Your NIN is stored separately and is not displayed on your public membership card. One account is allowed per browser/device. If you share this device or need help accessing an existing account, contact NYFB support.</p>
     {message&&<div role="status" className={message.error?"form-message form-error":"form-message"}>{message.text}</div>}
     <button className="btn form-submit" type="submit" disabled={busy}>{busy?"Submitting application…":"Create account & apply"} ↗</button></form>
     <div className="form-foot">Already registered? <Link href="/login">Sign in</Link></div>
