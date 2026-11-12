@@ -117,13 +117,7 @@ export default function AdminWorkspace(){
   const {error:updateError}=await supabase.from("members").update({status,reviewed_at:new Date().toISOString(),reviewed_by:user?.id,rejection_reason:reason}).eq("id",member.id);
   if(updateError)setError(updateError.message);
   else {
-   if(status==="approved"){
-    setNotice(member.member_number+" has been approved. No email notification was sent.");
-   } else {
-    const {data:emailResult,error:emailError}=await supabase.functions.invoke("send-member-status-email",{body:{member_id:member.id,status,reason}});
-    if(emailError||emailResult?.error)setNotice(member.member_number+" has been "+status+", but the email notification was not sent. "+(emailResult?.error||emailError?.message||"Please try again later."));
-    else setNotice(member.member_number+" has been "+status+" and the member has been notified by email.");
-   }
+   setNotice(member.member_number+" has been "+status+".");
    await load();
   }
   setBusy("");
