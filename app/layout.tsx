@@ -12,7 +12,7 @@ export default function RootLayout({ children }: Readonly<{children: React.React
     <html lang="en">
       <body>
         <div role="status" aria-live="polite" style={{background:"#fff4d6",borderBottom:"1px solid #ead8a7",color:"#634c16",padding:"10px 16px",textAlign:"center",fontSize:12,lineHeight:1.6,fontWeight:700}}>
-          NYFB PLATFORM UPGRADE: Our IT team is carrying out system improvements. New membership registration is temporarily closed. Existing members can still sign in.
+          NYFB NETWORK UPGRADE: We are improving network connectivity. Some users may experience slow loading or temporary connection issues. Membership registration remains OPEN.
         </div>
         {children}
         <WhatsAppCommunityButton />
