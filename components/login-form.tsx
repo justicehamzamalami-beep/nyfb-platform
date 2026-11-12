@@ -29,67 +29,69 @@ export default function LoginForm() {
           email: String(data.get("email")).trim().toLowerCase(),
           password: String(data.get("password"))
         }),
-        15000,
-        "The sign-in service is taking too long. Please check your connection and try again."
+        45000,
+        "NYFB sign-in is responding slowly because the authentication service is under heavy load. Your password has not been changed. Please wait briefly and try again."
       );
       if (error) throw error;
       if (!authData.user) throw new Error("Sign-in could not be completed. Please try again.");
 
-      // Only run the approval RPC for accounts that are actually pending.
-      // Approved members no longer incur a database write on every sign-in.
+      // Read membership once. A temporary lookup failure must not block a valid session.
       let needsActivation = false;
       try {
         const membership = await withTimeout(
           Promise.resolve(supabase.from("members").select("status").eq("user_id", authData.user.id).maybeSingle()),
-          5000,
+          4000,
           "Membership status lookup timed out"
         );
         needsActivation = !membership.error && membership.data?.status === "pending";
       } catch {
-        // A temporary membership lookup issue must not lock out a valid sign-in.
+        // Keep authenticated members able to reach their dashboard during database load.
       }
+
       if (needsActivation) {
-        const activationResult = await withTimeout(
-          Promise.resolve(supabase.rpc("activate_own_membership")),
-          7000,
-          "Your account is signed in, but membership activation is taking too long. Please try again."
-        );
-        if (activationResult.error) {
-          throw new Error("Your account is signed in, but membership activation could not be completed. Please try signing in again.");
+        try {
+          const activationResult = await withTimeout(
+            Promise.resolve(supabase.rpc("activate_own_membership")),
+            5000,
+            "Membership activation is temporarily delayed"
+          );
+          if (activationResult.error) {
+            setMessage("You are signed in, but your membership is still awaiting activation. Please contact NYFB support if this continues.");
+          }
+        } catch {
+          setMessage("You are signed in, but your membership status could not be refreshed because the database is busy.");
         }
       }
 
-      // A failed optional permissions lookup must never lock out an authenticated member.
+      // Resolve privileged destinations concurrently; failures safely fall back to member access.
       let role = "member";
-      try {
-        const profile = await withTimeout(
+      let coordinator = false;
+      const [profileResult, assignmentResult] = await Promise.allSettled([
+        withTimeout(
           Promise.resolve(supabase.from("profiles").select("role").eq("id", authData.user.id).maybeSingle()),
-          7000,
+          4000,
           "Profile lookup timed out"
-        );
-        if (!profile.error && profile.data?.role) role = profile.data.role;
-      } catch {
-        // Keep the signed-in session usable and use the member dashboard as a safe fallback.
+        ),
+        withTimeout(
+          Promise.resolve(supabase.from("coordinator_assignments").select("role").eq("user_id", authData.user.id)),
+          4000,
+          "Coordinator lookup timed out"
+        )
+      ]);
+
+      if (profileResult.status === "fulfilled" && !profileResult.value.error && profileResult.value.data?.role) {
+        role = profileResult.value.data.role;
       }
+      if (assignmentResult.status === "fulfilled" && !assignmentResult.value.error) {
+        coordinator = (assignmentResult.value.data || []).some((item: { role: string }) =>
+          ["ward_coordinator", "lga_coordinator", "state_coordinator", "national_admin"].includes(item.role)
+        );
+      }
+
       if (role === "national_admin") {
         router.replace("/admin");
         return;
       }
-
-      let coordinator = false;
-      try {
-        const assignments = await withTimeout(
-          Promise.resolve(supabase.from("coordinator_assignments").select("role").eq("user_id", authData.user.id)),
-          5000,
-          "Coordinator lookup timed out"
-        );
-        coordinator = !assignments.error && (assignments.data || []).some((item: { role: string }) =>
-          ["ward_coordinator", "lga_coordinator", "state_coordinator", "national_admin"].includes(item.role)
-        );
-      } catch {
-        // Coordinator access lookup is optional for normal member sign-in.
-      }
-
       if (coordinator || ["ward_coordinator", "lga_coordinator", "state_coordinator"].includes(role)) {
         router.replace("/coordinator");
       } else {
