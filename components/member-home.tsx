@@ -16,7 +16,7 @@ export default function MemberHome() {
   const [announcements,setAnnouncements]=useState<Announcement[]>([]);
   const [busy,setBusy]=useState(true);
   const [error,setError]=useState("");
-  const [stats,setStats]=useState({points:0,tasks:0,events:0,referrals:0,verifiedReferrals:0,wallet:0});
+  const [stats,setStats]=useState({referrals:0,verifiedReferrals:0});
   const [avatarUrl,setAvatarUrl]=useState<string|null>(null);
   const [uploadingPhoto,setUploadingPhoto]=useState(false);
   const [photoMessage,setPhotoMessage]=useState("");
@@ -35,35 +35,17 @@ export default function MemberHome() {
         if(authError||!user){window.location.replace("/login");return;}
         const memberResult=await supabase.from("members").select("member_number,referral_code,full_name,status,state,lga,ward,reviewed_at").eq("user_id",user.id).maybeSingle();
         if(memberResult.error)throw memberResult.error;
-        if(memberResult.data?.status==="approved"){
-          const lagosParts=new Intl.DateTimeFormat("en-GB",{timeZone:"Africa/Lagos",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
-          const lagosDay=`${lagosParts.find(part=>part.type==="year")?.value}-${lagosParts.find(part=>part.type==="month")?.value}-${lagosParts.find(part=>part.type==="day")?.value}`;
-          const {error:rewardInsertError}=await supabase.from("reward_transactions").insert({user_id:user.id,amount_ngn:250,reward_type:"daily_login",description:"Daily NYFB member login reward",source_key:lagosDay});
-          if(rewardInsertError&&rewardInsertError.code!=="23505")console.warn("Daily login reward was not recorded:",rewardInsertError.message);
-        }
-        const [announcementResult,taskResult,attendanceResult,referralResult,rewardResult]=await Promise.all([
-          supabase.from("announcements").select("id,title,body,audience,target_state,published_at,created_at").eq("published",true).order("published_at",{ascending:false}).limit(20),
-          supabase.from("task_submissions").select("id,status,points_awarded").eq("user_id",user.id),
-          supabase.from("event_attendance").select("id,checked_in_at,points_awarded").eq("user_id",user.id),
-          supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id),
-          supabase.from("reward_transactions").select("amount_ngn,reward_type,created_at").eq("user_id",user.id)
+        const [announcementResult,referralResult]=await Promise.all([
+          supabase.from("announcements").select("id,title,body,audience,target_state,published_at,created_at").eq("published",true).order("published_at",{ascending:false}).limit(10),
+          supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id)
         ]);
 
         if(active)setMember(memberResult.data as Member|null);
         if(active){const {data:photoBlob}=await supabase.storage.from("nyfb-member-photos").download(`${user.id}/profile`);if(photoBlob)setAvatarUrl(URL.createObjectURL(photoBlob));}
         if(active&&!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
         if(active){
-          const tasks=taskResult.error?[]:taskResult.data||[];
-          const attendance=attendanceResult.error?[]:attendanceResult.data||[];
           const referrals=referralResult.error?[]:referralResult.data||[];
-          setStats({
-            points:tasks.reduce((sum,row)=>sum+(row.status==="approved"?Number(row.points_awarded||0):0),0)+attendance.reduce((sum,row)=>sum+(row.checked_in_at?Number(row.points_awarded||0):0),0),
-            tasks:tasks.filter(row=>row.status==="approved").length,
-            events:attendance.filter(row=>Boolean(row.checked_in_at)).length,
-            referrals:referrals.length,
-            verifiedReferrals:referrals.filter(row=>row.status==="verified").length,
-            wallet:rewardResult.error?0:(rewardResult.data||[]).reduce((sum,row)=>sum+Number(row.amount_ngn||0),0)
-          });
+          setStats({referrals:referrals.length,verifiedReferrals:referrals.filter(row=>row.status==="verified").length});
         }
       }catch(e){if(active)setError(e instanceof Error?e.message:"Unable to load your membership.");}
       finally{if(active)setBusy(false);clearTimeout(loadTimeout);}
@@ -71,7 +53,7 @@ export default function MemberHome() {
     return()=>{active=false;clearTimeout(loadTimeout);};
   },[]);
 
-  useEffect(()=>{let channel:any;let timer:ReturnType<typeof setTimeout>|undefined;(async()=>{const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return;const refresh=()=>{if(timer)clearTimeout(timer);timer=setTimeout(()=>window.location.reload(),350);};channel=supabase.channel("nyfb-member-live-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"members",filter:"user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"announcements"},refresh).on("postgres_changes",{event:"*",schema:"public",table:"task_submissions",filter:"user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"event_attendance",filter:"user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"member_referrals",filter:"referrer_user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"reward_transactions",filter:"user_id=eq."+user.id},refresh).subscribe();})();return()=>{if(timer)clearTimeout(timer);if(channel){void createClient().removeChannel(channel);}};},[]);
+  useEffect(()=>{let channel:any;let timer:ReturnType<typeof setTimeout>|undefined;(async()=>{const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return;const refresh=()=>{if(timer)clearTimeout(timer);timer=setTimeout(()=>window.location.reload(),350);};channel=supabase.channel("nyfb-member-live-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"members",filter:"user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"announcements"},refresh).on("postgres_changes",{event:"*",schema:"public",table:"member_referrals",filter:"referrer_user_id=eq."+user.id},refresh).subscribe();})();return()=>{if(timer)clearTimeout(timer);if(channel){void createClient().removeChannel(channel);}};},[]);
 
   async function signOut(){const supabase=createClient();await supabase.auth.signOut();window.location.assign("/");}
 
@@ -143,8 +125,8 @@ export default function MemberHome() {
         <div className="member-heading"><div><small>MEMBER PORTAL</small><h1 id="dashboard">Your NYFB dashboard</h1><p>Manage your membership, stay informed and take part in NYFB programmes.</p></div><span className="member-portal-tag">SECURE MEMBER AREA</span></div>
         {busy?<p>Loading your membership details…</p>:error?<div className="form-message form-error">{error}</div>:!member?<p>No membership record was found for this account.</p>:<>
           <div className="member-welcome-row"><div className="member-avatar-wrap">{avatarUrl?<img src={avatarUrl} alt="Your profile" className="member-avatar-photo"/>:<span className="member-avatar-placeholder">{member.full_name.trim().charAt(0).toUpperCase()}</span>}</div><div className="member-welcome-copy"><p>Welcome, {member.full_name}. Here is your current membership record.</p><label className="photo-upload-button">{uploadingPhoto?"Uploading picture…":"Upload profile picture"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadProfilePhoto} disabled={uploadingPhoto}/></label><small className="photo-help">JPG, PNG or WEBP · Maximum 5MB</small>{photoMessage&&<small className="photo-message" role="status">{photoMessage}</small>}</div></div>
-          <div className="member-programme-link"><Link href="/programmes">Explore events, welfare, volunteer tasks and support groups →</Link></div><div className="member-summary" id="profile"><small>MEMBERSHIP NUMBER</small><h2>{member.member_number}</h2><p><strong>Status:</strong> <span className={"status status-"+member.status}>{member.status.toUpperCase()}</span></p><p><strong>Location:</strong> {member.lga}, {member.state}</p>{member.ward&&<p><strong>Ward:</strong> {member.ward}</p>}</div>
-          <section className="member-activity" id="rewards" aria-label="Your participation summary"><div><small>REWARD BALANCE</small><strong>₦{stats.wallet.toLocaleString("en-NG")}</strong><span>Approved cash rewards</span></div><div><small>RECOGNITION POINTS</small><strong>{stats.points.toLocaleString("en-NG")}</strong><span>Verified participation</span></div><div><small>COMPLETED TASKS</small><strong>{stats.tasks}</strong><span>Approved submissions</span></div><div><small>EVENTS ATTENDED</small><strong>{stats.events}</strong><span>Confirmed check-ins</span></div><div><small>REFERRALS</small><strong>{stats.referrals}</strong><span>{stats.verifiedReferrals} verified</span></div></section>
+          <div className="member-summary" id="profile"><small>MEMBERSHIP NUMBER</small><h2>{member.member_number}</h2><p><strong>Status:</strong> <span className={"status status-"+member.status}>{member.status.toUpperCase()}</span></p><p><strong>Location:</strong> {member.lga}, {member.state}</p>{member.ward&&<p><strong>Ward:</strong> {member.ward}</p>}</div>
+          <section className="member-activity" id="rewards" aria-label="Your referral summary"><div><small>REFERRALS</small><strong>{stats.referrals}</strong><span>{stats.verifiedReferrals} verified</span></div></section>
           {member.status==="approved"&&<section className="member-referral-box"><div><small>YOUR PERSONAL INVITATION CODE</small><h2>{member.referral_code}</h2><p>Earn ₦500 for each directly referred member after their membership is approved. Earn ₦100 when a member referred by your direct referral is approved.</p></div><button type="button" onClick={copyReferralLink}>Copy referral link</button>{referralMessage&&<p className="referral-copy-message" role="status">{referralMessage}</p>}</section>}
           <section className="member-announcements" id="announcements"><div className="member-section-head"><div><small>OFFICIAL UPDATES</small><h2>Announcements</h2></div><span>{announcements.length} updates</span></div>
             {announcements.length===0?<p className="no-announcements">There are no new announcements at the moment.</p>:announcements.map(item=><article key={item.id}><div className="announcement-date">{new Date(item.published_at||item.created_at).toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"})}</div><h3>{item.title}</h3><p>{item.body}</p>{item.audience==="state"&&item.target_state&&<small>For members in {item.target_state}</small>}</article>)}
