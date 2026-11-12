@@ -20,6 +20,7 @@ export default function JoinForm() {
     const v = Object.fromEntries(form.entries());
     const referralCode = new URLSearchParams(window.location.search).get("ref")?.trim() || "";
     try {
+      const registrationKey = localStorage.getItem("nyfb-registration-device-token") || (localStorage.setItem("nyfb-registration-device-token", crypto.randomUUID()), localStorage.getItem("nyfb-registration-device-token"));
       const supabase = createClient();
       const {data,error} = await withTimeout(supabase.auth.signUp({
         email: String(v.email).trim().toLowerCase(),
