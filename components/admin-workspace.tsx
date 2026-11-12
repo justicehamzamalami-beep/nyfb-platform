@@ -176,7 +176,7 @@ export default function AdminWorkspace(){
    <a href="mailto:nigerianyouthforbat@gmail.com" className="ny-programme-link"><span className="ny-link-icon">?</span><span className="ny-link-label">Help &amp; support</span><b>→</b></a>
    <Link href="/#about" className="ny-programme-link"><span className="ny-link-icon">ⓘ</span><span className="ny-link-label">About NYFB</span><b>→</b></Link>
    <div className="ny-side-bottom"><div className="ny-user-avatar">NY</div><div><b>NYFB Workspace</b><small>{role.replaceAll("_"," ")} access</small></div><button aria-label="Sign out" onClick={signOut}>↗</button></div>
-  </aside>
+  </aside></>}
   <section className="ny-main">
    <header className="ny-topbar"><div className="ny-topbar-left"><button type="button" className="ny-menu-toggle" aria-expanded={menuOpen} aria-controls="ny-admin-sidebar" onClick={()=>setMenuOpen(v=>!v)}><span>☰</span> Menu</button><div><span>NYFB / </span>{nav.find(n=>n.id===tab)?.label}</div></div><div className="ny-top-actions"><span className="ny-live-dot">● Secure workspace</span><button onClick={()=>void load()}>↻ Refresh</button><button className="ny-top-signout" onClick={signOut}>Sign out</button></div></header>
    <div className="ny-content">
