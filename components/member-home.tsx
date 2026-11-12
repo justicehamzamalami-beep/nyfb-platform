@@ -33,12 +33,12 @@ export default function MemberHome() {
         const supabase=createClient();
         const {data:{user},error:authError}=await supabase.auth.getUser();
         if(authError||!user){window.location.replace("/login");return;}
-        const memberResult=await supabase.from("members").select("member_number,referral_code,full_name,status,state,lga,ward,reviewed_at").eq("user_id",user.id).maybeSingle();
-        if(memberResult.error)throw memberResult.error;
-        const [announcementResult,referralResult]=await Promise.all([
+        const [memberResult,announcementResult,referralResult]=await Promise.all([
+          supabase.from("members").select("member_number,referral_code,full_name,status,state,lga,ward,reviewed_at").eq("user_id",user.id).maybeSingle(),
           supabase.from("announcements").select("id,title,body,audience,target_state,published_at,created_at").eq("published",true).order("published_at",{ascending:false}).limit(10),
           supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id)
         ]);
+        if(memberResult.error)throw memberResult.error;
 
         if(active)setMember(memberResult.data as Member|null);
         if(active){const {data:photoBlob}=await supabase.storage.from("nyfb-member-photos").download(`${user.id}/profile`);if(photoBlob)setAvatarUrl(URL.createObjectURL(photoBlob));}
@@ -53,7 +53,7 @@ export default function MemberHome() {
     return()=>{active=false;clearTimeout(loadTimeout);};
   },[]);
 
-  useEffect(()=>{let channel:any;let timer:ReturnType<typeof setTimeout>|undefined;(async()=>{const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return;const refresh=()=>{if(timer)clearTimeout(timer);timer=setTimeout(()=>window.location.reload(),350);};channel=supabase.channel("nyfb-member-live-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"members",filter:"user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"announcements"},refresh).on("postgres_changes",{event:"*",schema:"public",table:"member_referrals",filter:"referrer_user_id=eq."+user.id},refresh).subscribe();})();return()=>{if(timer)clearTimeout(timer);if(channel){void createClient().removeChannel(channel);}};},[]);
+
 
   async function signOut(){const supabase=createClient();await supabase.auth.signOut();window.location.assign("/");}
 
