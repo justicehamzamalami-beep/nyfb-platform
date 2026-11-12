@@ -1,7 +1,7 @@
 export default function WhatsAppCommunityButton() {
   return (
     <a
-      href="https://chat.whatsapp.com/Etw0M1UcgKwJVE5QRYSPEj?s=cl&p=i&mlu=4&ilr=4&iam=2"
+      href="https://chat.whatsapp.com/F5TGBDRxIjjH7GdGABQKxZ?s=cl&p=i&mlu=4&ilr=4&iam=2"
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Join the NYFB WhatsApp community group"
