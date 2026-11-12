@@ -17,6 +17,7 @@ const initialForm = {title:"",body:"",audience:"all",target_state:""};
 
 export default function AdminWorkspace(){
  const [members,setMembers]=useState<Member[]>([]);
+ const [memberCounts,setMemberCounts]=useState({all:0,pending:0,approved:0,rejected:0,suspended:0});
  const [bankAccounts,setBankAccounts]=useState<BankAccount[]>([]);
  const [announcements,setAnnouncements]=useState<Announcement[]>([]);
  const [activity,setActivity]=useState<Activity[]>([]);
@@ -45,21 +46,29 @@ export default function AdminWorkspace(){
    const work=(async()=>{
     const {data:{user},error:authError}=await supabase.auth.getUser();
     if(authError||!user){window.location.assign("/login");return;}
-    const [profileResult,assignmentResult,memberResult,announcementResult,activityResult,bankResult]=await Promise.all([
+    const [profileResult,assignmentResult,memberResult,announcementResult,activityResult,bankResult,totalCountResult,approvedCountResult,pendingCountResult,rejectedCountResult,suspendedCountResult]=await Promise.all([
      supabase.from("profiles").select("role").eq("id",user.id).maybeSingle(),
      supabase.from("coordinator_assignments").select("role,state,lga,ward").eq("user_id",user.id),
      supabase.from("members").select("id,user_id,member_number,full_name,email,phone,state,lga,ward,status,submitted_at,rejection_reason").order("submitted_at",{ascending:false}).limit(1000),
      supabase.from("announcements").select("id,title,body,audience,target_state,published,published_at,created_at").order("created_at",{ascending:false}).limit(50),
      supabase.from("audit_logs").select("id,actor_id,action,entity_type,entity_id,details,created_at").order("created_at",{ascending:false}).limit(20),
-     supabase.from("member_bank_accounts").select("user_id,bank_name,account_number,account_name,verification_status,submitted_at").order("submitted_at",{ascending:false}).limit(500)
+     supabase.from("member_bank_accounts").select("user_id,bank_name,account_number,account_name,verification_status,submitted_at").order("submitted_at",{ascending:false}).limit(500),
+     supabase.from("members").select("id",{count:"exact",head:true}),
+     supabase.from("members").select("id",{count:"exact",head:true}).eq("status","approved"),
+     supabase.from("members").select("id",{count:"exact",head:true}).eq("status","pending"),
+     supabase.from("members").select("id",{count:"exact",head:true}).eq("status","rejected"),
+     supabase.from("members").select("id",{count:"exact",head:true}).eq("status","suspended")
     ]);
     if(profileResult.error)throw new Error("Could not load your account permissions: "+profileResult.error.message);
     if(memberResult.error)throw new Error("Could not load membership applications: "+memberResult.error.message);
     if(assignmentResult.error)throw new Error("Could not load coordinator permissions: "+assignmentResult.error.message);
+    const countErrors=[totalCountResult,approvedCountResult,pendingCountResult,rejectedCountResult,suspendedCountResult].filter(result=>result.error);
+    if(countErrors.length)throw new Error("Could not load live membership totals: "+countErrors[0].error?.message);
     const pRole=profileResult.data?.role||"member";
     const assigned=(assignmentResult.data||[]) as Assignment[];
     const effectiveRole=pRole==="national_admin"?"national_admin":(assigned.find(a=>allowed.includes(a.role))?.role||pRole);
     setRole(effectiveRole);setAssignments(assigned);
+    setMemberCounts({all:totalCountResult.count||0,approved:approvedCountResult.count||0,pending:pendingCountResult.count||0,rejected:rejectedCountResult.count||0,suspended:suspendedCountResult.count||0});
     if(!allowed.includes(effectiveRole)){setError("Your account does not have coordinator or national administrator access.");setMembers([]);}
     else setMembers((memberResult.data||[]) as Member[]);
     if(!bankResult.error)setBankAccounts((bankResult.data||[]) as BankAccount[]);
@@ -88,7 +97,7 @@ export default function AdminWorkspace(){
   return()=>{if(refreshTimer)clearTimeout(refreshTimer);void supabase.removeChannel(channel);};
  },[]);
 
- const counts={all:members.length,pending:members.filter(m=>m.status==="pending").length,approved:members.filter(m=>m.status==="approved").length,rejected:members.filter(m=>m.status==="rejected").length,suspended:members.filter(m=>m.status==="suspended").length};
+ const counts=memberCounts;
  const visible=members.filter(m=>(filter==="all"||m.status===filter)&&[m.full_name,m.member_number,m.email||"",m.phone,m.state,m.lga,m.ward||""].join(" ").toLowerCase().includes(search.toLowerCase()));
  const recentMembers=members.slice(0,5);
  const publishedCount=announcements.filter(a=>a.published).length;
