@@ -108,7 +108,7 @@ export default function MemberHome() {
         <button className="member-menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="member-sidebar" onClick={()=>setMenuOpen(v=>!v)}><span>☰</span> Dashboard menu <span className="menu-toggle-state">{menuOpen?"Close":"Open"}</span></button>
         <NotificationCenter />
         <div className="member-dashboard-layout">
-          <aside hidden={!menuOpen} aria-hidden={!menuOpen} className={"member-sidebar"+(menuOpen?" is-open":"")} id="member-sidebar">
+          {menuOpen&&<><button type="button" className="member-menu-backdrop" aria-label="Close dashboard menu" onClick={()=>setMenuOpen(false)}/><aside className="member-sidebar is-open" id="member-sidebar"><button type="button" className="member-sidebar-close" onClick={()=>setMenuOpen(false)} aria-label="Close menu">×</button>
             <div className="sidebar-label">MEMBER MENU</div>
             <Link href="/member" onClick={()=>setMenuOpen(false)}><span>⌂</span> Overview</Link>
             <Link href="/member/profile" onClick={()=>setMenuOpen(false)}><span>◉</span> My profile</Link>
@@ -119,7 +119,7 @@ export default function MemberHome() {
             <Link href="/member/settings" onClick={()=>setMenuOpen(false)}><span>⚙</span> Account settings</Link>
             <Link href="/member/support" onClick={()=>setMenuOpen(false)}><span>✉</span> Help &amp; support</Link>
             <div className="sidebar-footer">NIGERIAN YOUTH FOR BAT<br/><small>MEMBER PORTAL</small></div>
-          </aside>
+          </aside></>}
           <div className="member-main-content">
         <div className="member-heading"><div><small>MEMBER PORTAL</small><h1 id="dashboard">Your NYFB dashboard</h1><p>Manage your membership, stay informed and take part in NYFB programmes.</p></div><span className="member-portal-tag">SECURE MEMBER AREA</span></div>
         {busy?<p>Loading your membership details…</p>:error?<div className="form-message form-error">{error}</div>:!member?<p>No membership record was found for this account.</p>:<>
