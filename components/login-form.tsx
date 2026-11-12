@@ -12,21 +12,24 @@ export default function LoginForm(){
   const data=new FormData(e.currentTarget);
   try{
    const supabase=createClient();
-   const {data:authData,error}=await supabase.auth.signInWithPassword({email:String(data.get("email")).trim().toLowerCase(),password:String(data.get("password"))});
-   if(error)throw error;
-   const userId=authData.user.id;
-   // Do not leave members stuck on the login spinner if the database role
-   // lookup is slow or temporarily unavailable. Authentication has already
-   // succeeded, so fall back to the member area after a short bounded wait.
-   const roleLookups=Promise.all([
-    supabase.from("profiles").select("role").eq("id",userId).maybeSingle(),
-    supabase.from("coordinator_assignments").select("role").eq("user_id",userId)
+   const signIn=await Promise.race([
+    supabase.auth.signInWithPassword({email:String(data.get("email")).trim().toLowerCase(),password:String(data.get("password"))}),
+    new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("The sign-in service is taking too long. Please check your connection and try again.")),15000))
    ]);
-   const timeout=new Promise<null>(resolve=>setTimeout(()=>resolve(null),8000));
-   const lookupResult=await Promise.race([roleLookups,timeout]);
-   const profile=lookupResult?.[0]?.data;
-   const assignments=lookupResult?.[1]?.data||[];
-   const role=profile?.role||assignments[0]?.role||"member";
+   if(signIn.error)throw signIn.error;
+   const userId=signIn.data.user.id;
+   const roleLookups=await Promise.race([
+    Promise.all([
+     supabase.from("profiles").select("role").eq("id",userId).maybeSingle(),
+     supabase.from("coordinator_assignments").select("role").eq("user_id",userId)
+    ]),
+    new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("Your password was accepted, but your dashboard permissions are taking too long to load. Please try signing in again shortly.")),12000))
+   ]);
+   const [profileResult,assignmentResult]=roleLookups;
+   if(profileResult.error)throw new Error("Your account is signed in, but its access level could not be checked. Please try again.");
+   if(assignmentResult.error)throw new Error("Your account is signed in, but coordinator access could not be checked. Please try again.");
+   const assignments=assignmentResult.data||[];
+   const role=profileResult.data?.role||assignments[0]?.role||"member";
    const isAdmin=role==="national_admin"||assignments.some(a=>a.role==="national_admin");
    const isCoordinator=["ward_coordinator","lga_coordinator","state_coordinator"].includes(role)||assignments.some(a=>["ward_coordinator","lga_coordinator","state_coordinator"].includes(a.role));
    router.replace(isAdmin?"/admin":isCoordinator?"/coordinator":"/member");
