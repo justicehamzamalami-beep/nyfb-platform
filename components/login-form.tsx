@@ -35,17 +35,28 @@ export default function LoginForm() {
       if (error) throw error;
       if (!authData.user) throw new Error("Sign-in could not be completed. Please try again.");
 
-      const activationPromise: Promise<{ error: { message: string } | null }> = Promise.resolve().then(async () => {
-        const result = await supabase.rpc("activate_own_membership");
-        return { error: result.error };
-      });
-      const activationResult = await withTimeout(
-        activationPromise,
-        7000,
-        "Your account is signed in, but membership activation is taking too long. Please try again."
-      );
-      if (activationResult.error) {
-        throw new Error("Your account is signed in, but membership activation could not be completed. Please try signing in again.");
+      // Only run the approval RPC for accounts that are actually pending.
+      // Approved members no longer incur a database write on every sign-in.
+      let needsActivation = false;
+      try {
+        const membership = await withTimeout(
+          Promise.resolve(supabase.from("members").select("status").eq("user_id", authData.user.id).maybeSingle()),
+          5000,
+          "Membership status lookup timed out"
+        );
+        needsActivation = !membership.error && membership.data?.status === "pending";
+      } catch {
+        // A temporary membership lookup issue must not lock out a valid sign-in.
+      }
+      if (needsActivation) {
+        const activationResult = await withTimeout(
+          Promise.resolve(supabase.rpc("activate_own_membership")),
+          7000,
+          "Your account is signed in, but membership activation is taking too long. Please try again."
+        );
+        if (activationResult.error) {
+          throw new Error("Your account is signed in, but membership activation could not be completed. Please try signing in again.");
+        }
       }
 
       // A failed optional permissions lookup must never lock out an authenticated member.
