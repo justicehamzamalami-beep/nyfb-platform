@@ -27,6 +27,9 @@ export default function MemberHome() {
 
   useEffect(()=>{
     let active=true;
+    const loadTimeout=setTimeout(()=>{
+      if(active){setError("Your dashboard is taking too long to load. Check your connection and refresh the page.");setBusy(false);}
+    },15000);
     (async()=>{
       try{
         const supabase=createClient();
@@ -65,9 +68,9 @@ export default function MemberHome() {
           });
         }
       }catch(e){if(active)setError(e instanceof Error?e.message:"Unable to load your membership.");}
-      finally{if(active)setBusy(false);}
+      finally{if(active)setBusy(false);clearTimeout(loadTimeout);}
     })();
-    return()=>{active=false;};
+    return()=>{active=false;clearTimeout(loadTimeout);};
   },[]);
 
   useEffect(()=>{let channel:any;let timer:ReturnType<typeof setTimeout>|undefined;(async()=>{const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return;const refresh=()=>{if(timer)clearTimeout(timer);timer=setTimeout(()=>window.location.reload(),350);};channel=supabase.channel("nyfb-member-live-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"members",filter:"user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"announcements"},refresh).on("postgres_changes",{event:"*",schema:"public",table:"task_submissions",filter:"user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"event_attendance",filter:"user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"member_referrals",filter:"referrer_user_id=eq."+user.id},refresh).on("postgres_changes",{event:"*",schema:"public",table:"reward_transactions",filter:"user_id=eq."+user.id},refresh).subscribe();})();return()=>{if(timer)clearTimeout(timer);if(channel){void createClient().removeChannel(channel);}};},[]);
