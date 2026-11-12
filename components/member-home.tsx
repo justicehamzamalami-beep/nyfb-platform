@@ -50,7 +50,7 @@ export default function MemberHome() {
           supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id),
           supabase.from("reward_transactions").select("amount_ngn,reward_type,created_at").eq("user_id",user.id)
         ]);
-        if(memberResult.error)throw memberResult.error;
+
         if(active)setMember(memberResult.data as Member|null);
         if(active){const {data:photoBlob}=await supabase.storage.from("nyfb-member-photos").download(`${user.id}/profile`);if(photoBlob)setAvatarUrl(URL.createObjectURL(photoBlob));}
         if(active&&!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
