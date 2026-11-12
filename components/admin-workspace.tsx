@@ -21,7 +21,6 @@ export default function AdminWorkspace(){
  const [selectedIds,setSelectedIds]=useState<string[]>([]);
  const [announcements,setAnnouncements]=useState<Announcement[]>([]);
  const [activity,setActivity]=useState<Activity[]>([]);
- const [programmeCounts,setProgrammeCounts]=useState({events:0,tasks:0,groups:0,welfare:0,campus:0,attendance:0});
  const [role,setRole]=useState("member");
  const [assignments,setAssignments]=useState<Assignment[]>([]);
  const [tab,setTab]=useState<Tab>("overview");
@@ -47,19 +46,13 @@ export default function AdminWorkspace(){
    const work=(async()=>{
     const {data:{user},error:authError}=await supabase.auth.getUser();
     if(authError||!user){window.location.assign("/login");return;}
-    const [profileResult,assignmentResult,memberResult,announcementResult,activityResult,eventsResult,tasksResult,groupsResult,welfareResult,campusResult,attendanceResult,bankResult]=await Promise.all([
+    const [profileResult,assignmentResult,memberResult,announcementResult,activityResult,bankResult]=await Promise.all([
      supabase.from("profiles").select("role").eq("id",user.id).maybeSingle(),
      supabase.from("coordinator_assignments").select("role,state,lga,ward").eq("user_id",user.id),
      supabase.from("members").select("id,user_id,member_number,full_name,email,phone,state,lga,ward,status,submitted_at,rejection_reason").order("submitted_at",{ascending:false}).limit(1000),
-     supabase.from("announcements").select("id,title,body,audience,target_state,published,published_at,created_at").order("created_at",{ascending:false}).limit(100),
-     supabase.from("audit_logs").select("id,actor_id,action,entity_type,entity_id,details,created_at").order("created_at",{ascending:false}).limit(30),
-     supabase.from("events").select("id,status"),
-     supabase.from("volunteer_tasks").select("id,status"),
-     supabase.from("support_groups").select("id,status"),
-     supabase.from("welfare_applications").select("id,status"),
-     supabase.from("campus_mobilizers").select("id,status"),
-     supabase.from("event_attendance").select("id"),
-     supabase.from("member_bank_accounts").select("user_id,bank_name,account_number,account_name,verification_status,submitted_at").order("submitted_at",{ascending:false}).limit(1000)
+     supabase.from("announcements").select("id,title,body,audience,target_state,published,published_at,created_at").order("created_at",{ascending:false}).limit(50),
+     supabase.from("audit_logs").select("id,actor_id,action,entity_type,entity_id,details,created_at").order("created_at",{ascending:false}).limit(20),
+     supabase.from("member_bank_accounts").select("user_id,bank_name,account_number,account_name,verification_status,submitted_at").order("submitted_at",{ascending:false}).limit(500)
     ]);
     if(profileResult.error)throw new Error("Could not load your account permissions: "+profileResult.error.message);
     if(memberResult.error)throw new Error("Could not load membership applications: "+memberResult.error.message);
@@ -73,7 +66,6 @@ export default function AdminWorkspace(){
     if(!bankResult.error)setBankAccounts((bankResult.data||[]) as BankAccount[]);
     if(!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
     if(!activityResult.error)setActivity((activityResult.data||[]) as Activity[]);
-    setProgrammeCounts({events:eventsResult.data?.length||0,tasks:tasksResult.data?.length||0,groups:groupsResult.data?.length||0,welfare:welfareResult.data?.length||0,campus:campusResult.data?.length||0,attendance:attendanceResult.data?.length||0});
    })();
    const timeout=new Promise<never>((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error("The dashboard is taking too long to load. Check your connection and try again.")),15000);});
    await Promise.race([work,timeout]);
@@ -93,9 +85,6 @@ export default function AdminWorkspace(){
    .on("postgres_changes",{event:"*",schema:"public",table:"members"},refresh)
    .on("postgres_changes",{event:"*",schema:"public",table:"announcements"},refresh)
    .on("postgres_changes",{event:"*",schema:"public",table:"audit_logs"},refresh)
-   .on("postgres_changes",{event:"*",schema:"public",table:"events"},refresh)
-   .on("postgres_changes",{event:"*",schema:"public",table:"volunteer_tasks"},refresh)
-   .on("postgres_changes",{event:"*",schema:"public",table:"event_attendance"},refresh)
    .subscribe();
   return()=>{if(refreshTimer)clearTimeout(refreshTimer);void supabase.removeChannel(channel);};
  },[]);
@@ -212,7 +201,6 @@ export default function AdminWorkspace(){
        <article className="ny-stat green"><div className="ny-stat-top"><span>Approved members</span><b>✓</b></div><strong>{counts.approved}</strong><small>Eligible for membership card</small></article>
        <article className="ny-stat dark"><div className="ny-stat-top"><span>Published updates</span><b>▤</b></div><strong>{publishedCount}</strong><small>{pendingCount} drafts awaiting publication</small></article>
       </div>
-      <section className="ny-panel ny-coverage"><div className="ny-panel-head"><div><h2>National engagement overview</h2><p>Programme activity and participation recorded across the NYFB network</p></div><Link className="ny-text-btn" href="/admin/programmes">Manage programmes →</Link></div><div className="ny-stats ny-engagement-stats"><article className="ny-stat"><div className="ny-stat-top"><span>Events</span><b>◷</b></div><strong>{programmeCounts.events}</strong><small>Published and draft records</small></article><article className="ny-stat"><div className="ny-stat-top"><span>Volunteer tasks</span><b>✓</b></div><strong>{programmeCounts.tasks}</strong><small>Campaign and service tasks</small></article><article className="ny-stat"><div className="ny-stat-top"><span>Support groups</span><b>♧</b></div><strong>{programmeCounts.groups}</strong><small>Applications and registrations</small></article><article className="ny-stat"><div className="ny-stat-top"><span>Welfare requests</span><b>♡</b></div><strong>{programmeCounts.welfare}</strong><small>Assistance applications</small></article><article className="ny-stat"><div className="ny-stat-top"><span>Campus mobilizers</span><b>⌂</b></div><strong>{programmeCounts.campus}</strong><small>Campus network applications</small></article><article className="ny-stat"><div className="ny-stat-top"><span>Event registrations</span><b>↗</b></div><strong>{programmeCounts.attendance}</strong><small>Recorded event RSVPs</small></article></div></section>
       <div className="ny-overview-grid">
        <section className="ny-panel ny-wide"><div className="ny-panel-head"><div><h2>Membership applications</h2><p>Latest submissions requiring attention</p></div><button className="ny-text-btn" onClick={()=>{setTab("members");setFilter("pending");}}>View all →</button></div>
         {recentMembers.length===0?<div className="ny-empty">No membership applications found.</div>:<div className="ny-table-wrap"><table><thead><tr><th>MEMBER</th><th>LOCATION</th><th>SUBMITTED</th><th>STATUS</th><th></th></tr></thead><tbody>{recentMembers.map(m=><tr key={m.id}><td><b>{m.full_name}</b><small>{m.member_number}</small></td><td>{m.lga}, {m.state}</td><td>{date(m.submitted_at)}</td><td><span className={"ny-status "+m.status}>{m.status}</span></td><td><button className="ny-row-btn" onClick={()=>{setTab("members");setSearch(m.member_number);setFilter("all");}}>Open</button></td></tr>)}</tbody></table></div>}
