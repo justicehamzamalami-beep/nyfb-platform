@@ -107,7 +107,15 @@ export default function MemberHome() {
       const {data:{user},error:authError}=await supabase.auth.getUser();
       if(authError||!user)throw new Error("Please sign in again and try once more.");
       const {data,error}=await supabase.functions.invoke("send-member-id-card",{body:{}});
-      if(error)throw new Error(error.message||"Unable to send your ID card.");
+      if(error){
+        let serverMessage="";
+        try{
+          const response=(error as {context?:Response}).context;
+          const body=response?await response.clone().json():null;
+          serverMessage=typeof body?.error==="string"?body.error:"";
+        }catch{}
+        throw new Error(serverMessage||error.message||"Unable to send your ID card.");
+      }
       if(data?.error)throw new Error(data.error);
       setCardEmailMessage("Your digital ID card has been sent to "+(data?.recipient||"your registered email address")+". Please check your Gmail inbox and spam folder.");
     }catch(e){
