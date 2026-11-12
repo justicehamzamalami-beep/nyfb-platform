@@ -34,11 +34,12 @@ export default function LoginForm() {
       );
       if (error) throw error;
       if (!authData.user) throw new Error("Sign-in could not be completed. Please try again.");
-      const { error: activationError } = await withTimeout(
-        supabase.rpc("activate_own_membership"),
+      const activationResult = await withTimeout(
+        supabase.rpc("activate_own_membership").then((result) => result as { error: { message: string } | null }),
         7000,
         "Your account is signed in, but membership activation is taking too long. Please try again."
       );
+      const activationError = activationResult.error;
       if (activationError) {
         throw new Error("Your account is signed in, but membership activation could not be completed. Please try signing in again.");
       }
