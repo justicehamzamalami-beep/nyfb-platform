@@ -115,7 +115,6 @@ export default function MemberHome() {
             <Link href="/member/bank-details" onClick={()=>setMenuOpen(false)}><span>₦</span> Bank account information</Link>
             <Link href="/member/card" onClick={()=>setMenuOpen(false)}><span>▣</span> Membership card</Link>
             <Link href="/member/rewards" onClick={()=>setMenuOpen(false)}><span>₦</span> Rewards &amp; referrals</Link>
-            <Link href="/programmes" onClick={()=>setMenuOpen(false)}><span>▤</span> Programmes &amp; events</Link>
             <Link href="/member/announcements" onClick={()=>setMenuOpen(false)}><span>◷</span> Announcements</Link>
             <Link href="/member/settings" onClick={()=>setMenuOpen(false)}><span>⚙</span> Account settings</Link>
             <Link href="/member/support" onClick={()=>setMenuOpen(false)}><span>✉</span> Help &amp; support</Link>
