@@ -17,14 +17,11 @@ export default function NotificationCenter() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const loadNotifications = useCallback(async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  const loadNotifications = useCallback(async (userId: string, supabase = createClient()) => {
     const { data, error } = await supabase
       .from("user_notifications")
       .select("id,title,message,notification_type,read_at,created_at")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(30);
     if (!error) setItems((data || []) as UserNotification[]);
@@ -32,13 +29,19 @@ export default function NotificationCenter() {
   }, []);
 
   useEffect(() => {
-    void loadNotifications();
     const supabase = createClient();
     let channel: any;
     let disposed = false;
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && userId) void loadNotifications(userId, supabase);
+    };
+    let userId = "";
     void (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || disposed) return;
+      if (!user || disposed) { setLoading(false); return; }
+      userId = user.id;
+      await loadNotifications(user.id, supabase);
+      if (disposed) return;
       channel = supabase
         .channel("nyfb-user-notifications-" + user.id)
         .on("postgres_changes", {
@@ -46,13 +49,13 @@ export default function NotificationCenter() {
           schema: "public",
           table: "user_notifications",
           filter: "user_id=eq." + user.id,
-        }, () => { void loadNotifications(); })
+        }, () => { void loadNotifications(user.id, supabase); })
         .subscribe();
+      document.addEventListener("visibilitychange", onVisible);
     })();
-    const timer = window.setInterval(() => { void loadNotifications(); }, 45000);
     return () => {
       disposed = true;
-      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
       if (channel) void supabase.removeChannel(channel);
     };
   }, [loadNotifications]);
