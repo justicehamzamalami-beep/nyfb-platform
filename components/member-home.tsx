@@ -33,10 +33,11 @@ export default function MemberHome() {
         const supabase=createClient();
         const {data:{user},error:authError}=await supabase.auth.getUser();
         if(authError||!user){window.location.replace("/login");return;}
-        const [memberResult,announcementResult,referralResult]=await Promise.all([
+        const [memberResult,announcementResult,referralCountResult,verifiedReferralCountResult]=await Promise.all([
           supabase.from("members").select("member_number,referral_code,full_name,status,state,lga,ward,reviewed_at").eq("user_id",user.id).maybeSingle(),
           supabase.from("announcements").select("id,title,body,audience,target_state,published_at,created_at").eq("published",true).order("published_at",{ascending:false}).limit(10),
-          supabase.from("member_referrals").select("id,status").eq("referrer_user_id",user.id)
+          supabase.from("member_referrals").select("id",{count:"exact",head:true}).eq("referrer_user_id",user.id),
+          supabase.from("member_referrals").select("id",{count:"exact",head:true}).eq("referrer_user_id",user.id).eq("status","verified")
         ]);
         if(memberResult.error)throw memberResult.error;
 
@@ -44,8 +45,10 @@ export default function MemberHome() {
         if(active){const {data:photoBlob}=await supabase.storage.from("nyfb-member-photos").download(`${user.id}/profile`);if(photoBlob)setAvatarUrl(URL.createObjectURL(photoBlob));}
         if(active&&!announcementResult.error)setAnnouncements((announcementResult.data||[]) as Announcement[]);
         if(active){
-          const referrals=referralResult.error?[]:referralResult.data||[];
-          setStats({referrals:referrals.length,verifiedReferrals:referrals.filter(row=>row.status==="verified").length});
+          setStats({
+            referrals:referralCountResult.error?0:(referralCountResult.count||0),
+            verifiedReferrals:verifiedReferralCountResult.error?0:(verifiedReferralCountResult.count||0)
+          });
         }
       }catch(e){if(active)setError(e instanceof Error?e.message:"Unable to load your membership.");}
       finally{if(active)setBusy(false);clearTimeout(loadTimeout);}
