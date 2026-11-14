@@ -29,8 +29,8 @@ export default function LoginForm() {
           email: String(data.get("email")).trim().toLowerCase(),
           password: String(data.get("password"))
         }),
-        45000,
-        "NYFB sign-in is responding slowly because the authentication service is under heavy load. Your password has not been changed. Please wait briefly and try again."
+        20000,
+        "NYFB sign-in is taking longer than expected. The authentication service is currently unstable. Please wait a moment and try again; your password has not been changed."
       );
       if (error) throw error;
       if (!authData.user) throw new Error("Sign-in could not be completed. Please try again.");
