@@ -165,6 +165,17 @@ export default function BankDetailsPage() {
           <img
             src="https://brpqtdqejvlxsyzlyrfv.supabase.co/storage/v1/object/public/nyfb-site-media/website/logo/15fe9ad9-01c7-4bb6-873e-bc8ba989018d.jpg"
             alt="NYFB official logo"
+            style={{
+              width: 54,
+              height: 54,
+              minWidth: 54,
+              maxWidth: 54,
+              objectFit: "contain",
+              objectPosition: "center",
+              display: "block",
+              flex: "0 0 54px",
+              borderRadius: 9,
+            }}
           />
           <span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span>
         </div>
