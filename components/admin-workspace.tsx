@@ -189,6 +189,7 @@ export default function AdminWorkspace(){
    <div className="ny-side-caption ny-side-group">MANAGEMENT TOOLS</div>
    <Link href="/admin/programmes" className="ny-programme-link"><span className="ny-link-icon">▣</span><span className="ny-link-label">Programmes &amp; projects</span><b>→</b></Link>
    {isNationalAdmin&&<Link href="/admin/coordinators" className="ny-programme-link"><span className="ny-link-icon">♙</span><span className="ny-link-label">Coordinators &amp; teams</span><b>→</b></Link>}
+   {(role==="lga_coordinator"||isNationalAdmin)&&<Link href="/coordinator/pvc" className="ny-programme-link"><span className="ny-link-icon">✓</span><span className="ny-link-label">PVC KYC verification</span><b>→</b></Link>}
    {isNationalAdmin&&<Link href="/admin/website" className="ny-programme-link"><span className="ny-link-icon">▧</span><span className="ny-link-label">Website management</span><b>→</b></Link>}
    <div className="ny-side-caption ny-side-group">ACCOUNT &amp; SUPPORT</div>
    <button type="button" className="ny-programme-link" style={{background:"transparent",width:"100%",fontFamily:"inherit",textAlign:"left",cursor:"pointer"}} onClick={()=>{setTab("profile");setNotice("");setError("");setMenuOpen(false);}}><span className="ny-link-icon">◎</span><span className="ny-link-label">My profile</span><b>→</b></button>
