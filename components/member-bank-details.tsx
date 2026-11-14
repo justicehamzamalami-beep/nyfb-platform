@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const BANKS = [
@@ -18,16 +17,6 @@ const BANKS = [
   "Carbon Microfinance Bank",
 ].sort();
 
-const MEMBER_LINKS: Array<[string, string, string]> = [
-  ["/member", "Overview", "⌂"],
-  ["/member/profile", "My profile", "◉"],
-  ["/member/bank-details", "Bank account information", "₦"],
-  ["/member/rewards", "Rewards & referrals", "₦"],
-  ["/member/announcements", "Announcements", "◷"],
-  ["/member/settings", "Account settings", "⚙"],
-  ["/member/support", "Help & support", "✉"],
-];
-
 type BankInfo = {
   bank_name: string;
   account_number: string;
@@ -35,8 +24,6 @@ type BankInfo = {
 };
 
 export default function BankDetailsPage() {
-  const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [status, setStatus] = useState("");
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
   const [bank, setBank] = useState("");
@@ -181,46 +168,7 @@ export default function BankDetailsPage() {
           <span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span>
         </div>
 
-        <button
-          className="member-menu-toggle"
-          type="button"
-          aria-expanded={menuOpen}
-          aria-controls="member-sidebar"
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          ☰ Member navigation <span className="menu-toggle-state">{menuOpen ? "Close" : "Open"}</span>
-        </button>
-
         <div className="member-dashboard-layout">
-          {menuOpen && (
-            <button
-              type="button"
-              className="member-menu-backdrop"
-              aria-label="Close navigation"
-              onClick={() => setMenuOpen(false)}
-            />
-          )}
-
-          <aside id="member-sidebar" className={"member-sidebar" + (menuOpen ? " is-open" : "")}>
-            <button type="button" className="member-sidebar-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">×</button>
-            <div className="sidebar-label">MEMBER MENU</div>
-            {MEMBER_LINKS.map(([href, label, icon]) => (
-              <Link
-                key={href}
-                href={href}
-                className={pathname === href ? "active" : ""}
-                aria-current={pathname === href ? "page" : undefined}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span>{icon}</span>{label}
-              </Link>
-            ))}
-            <div className="sidebar-footer">
-              NIGERIAN YOUTH FOR BAT<br />
-              <small>MEMBER PORTAL</small>
-            </div>
-          </aside>
-
           <div className="member-main-content">
             <header className="member-heading">
               <div>
