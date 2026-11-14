@@ -55,7 +55,8 @@ export default function BankDetailsPage() {
     const load = async () => {
       try {
         const db = createClient();
-        const { data: { user }, error: authError } = await db.auth.getUser();
+        const { data: { session }, error: authError } = await db.auth.getSession();
+        const user = session?.user;
         if (authError || !user) {
           window.location.replace("/login");
           return;
@@ -112,7 +113,8 @@ export default function BankDetailsPage() {
     setSaving(true);
     try {
       const db = createClient();
-      const { data: { user }, error: authError } = await db.auth.getUser();
+      const { data: { session }, error: authError } = await db.auth.getSession();
+      const user = session?.user;
       if (authError || !user) throw new Error("Please sign in again.");
 
       const payload = {
