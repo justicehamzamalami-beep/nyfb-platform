@@ -66,7 +66,7 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
 .member-brand{padding:16px 20px!important;background:var(--nyfb-forest);border-radius:15px;color:#fff!important;box-shadow:0 12px 30px #073b2b18}
 .member-brand b{background:#ffffff18!important;border:1px solid #ffffff30;color:#f1d78b!important;border-radius:11px!important}
 .member-brand small{color:#c5d8cc!important}
-.member-dashboard-layout{display:grid!important;grid-template-columns:245px minmax(0,1fr)!important;gap:24px!important;align-items:start!important;margin-top:22px!important}
+.member-dashboard-layout{display:block!important;grid-template-columns:minmax(0,1fr)!important;gap:0!important;align-items:start!important;margin-top:22px!important}
 .member-sidebar{position:sticky!important;top:18px;background:linear-gradient(180deg,#073b2b,#0b5138)!important;border:1px solid #ffffff18!important;border-radius:16px!important;padding:18px 13px!important;box-shadow:0 12px 35px #073b2b18!important}
 .member-sidebar .sidebar-label{color:#d6bd79!important;font-weight:800!important;letter-spacing:1.6px!important;padding:8px 12px 14px!important}
 .member-sidebar a{display:flex!important;align-items:center!important;gap:12px!important;padding:12px 13px!important;margin:3px 0!important;border-radius:9px!important;color:#e1eee5!important;font-size:12px!important;transition:.18s ease}
@@ -105,7 +105,7 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
 .member-announcements article{border:1px solid var(--nyfb-line)!important;border-radius:11px!important;padding:17px!important;margin:12px 0!important;background:#fff!important}
 .member-announcements article h3{color:var(--nyfb-forest)!important}
 .member-menu-toggle{border-radius:8px!important;background:#0c5b3c!important;color:#fff!important;padding:11px 14px!important}
-@media(max-width:950px){.member-dashboard-layout{grid-template-columns:1fr!important}.member-sidebar{position:relative!important;top:auto!important}.member-activity{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:950px){.member-dashboard-layout{display:block!important;grid-template-columns:minmax(0,1fr)!important}.member-activity{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:620px){.member-space{padding:12px 12px 35px!important}.member-brand{margin-top:16px!important}.member-main-content{padding:17px!important;border-radius:13px!important}.member-heading{display:block!important}.member-portal-tag{display:inline-flex!important;margin-top:10px!important}.member-activity{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}.member-activity>div{padding:12px!important}.member-welcome-row{align-items:flex-start!important}.member-sidebar{border-radius:12px!important}.member-sidebar a{display:inline-flex!important;width:calc(50% - 5px)!important;font-size:10px!important;padding:10px!important}.member-sidebar .sidebar-footer{display:none!important}}
 /* National administration workspace */
 .ny-admin{background:#f2f5f2!important;color:#183528!important}
