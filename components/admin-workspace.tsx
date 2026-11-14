@@ -90,13 +90,20 @@ export default function AdminWorkspace(){
  useEffect(()=>{
   void load();
   let refreshTimer:ReturnType<typeof setTimeout>|undefined;
-  const refresh=()=>{if(refreshTimer)clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>void load(),900);};
+  // Bulk registrations can emit many realtime events in a short burst.
+  // Debounce the refresh and skip it while the admin tab is hidden.
+  const refresh=()=>{
+   if(document.visibilityState!=="visible")return;
+   if(refreshTimer)clearTimeout(refreshTimer);
+   refreshTimer=setTimeout(()=>void load(),2500);
+  };
   const channel=supabase.channel("nyfb-admin-live")
    .on("postgres_changes",{event:"*",schema:"public",table:"members"},refresh)
-   .on("postgres_changes",{event:"*",schema:"public",table:"announcements"},refresh)
-   .on("postgres_changes",{event:"*",schema:"public",table:"audit_logs"},refresh)
    .subscribe();
-  return()=>{if(refreshTimer)clearTimeout(refreshTimer);void supabase.removeChannel(channel);};
+  return()=>{
+   if(refreshTimer)clearTimeout(refreshTimer);
+   void supabase.removeChannel(channel);
+  };
  },[]);
 
  const counts=memberCounts;

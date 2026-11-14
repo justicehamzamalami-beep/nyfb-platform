@@ -32,10 +32,19 @@ export default function NotificationCenter() {
     const supabase = createClient();
     let channel: any;
     let disposed = false;
-    const onVisible = () => {
-      if (document.visibilityState === "visible" && userId) void loadNotifications(userId, supabase);
-    };
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
     let userId = "";
+    const scheduleRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        if (!disposed && document.visibilityState === "visible" && userId) {
+          void loadNotifications(userId, supabase);
+        }
+      }, 1200);
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && userId) scheduleRefresh();
+    };
     void (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || disposed) { setLoading(false); return; }
@@ -49,12 +58,13 @@ export default function NotificationCenter() {
           schema: "public",
           table: "user_notifications",
           filter: "user_id=eq." + user.id,
-        }, () => { void loadNotifications(user.id, supabase); })
+        }, scheduleRefresh)
         .subscribe();
       document.addEventListener("visibilitychange", onVisible);
     })();
     return () => {
       disposed = true;
+      if (refreshTimer) clearTimeout(refreshTimer);
       document.removeEventListener("visibilitychange", onVisible);
       if (channel) void supabase.removeChannel(channel);
     };
