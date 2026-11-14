@@ -35,19 +35,43 @@ export default function LoginForm() {
       if (error) throw error;
       if (!authData.user) throw new Error("Sign-in could not be completed. Please try again.");
 
-      // Read membership once. A temporary lookup failure must not block a valid session.
+      // Run the three small post-auth lookups together so database latency is paid once,
+      // not once for membership and again for role routing.
       let needsActivation = false;
-      try {
-        const membership = await withTimeout(
+      let role = "member";
+      let coordinator = false;
+      const [membershipResult, profileResult, assignmentResult] = await Promise.allSettled([
+        withTimeout(
           Promise.resolve(supabase.from("members").select("status").eq("user_id", authData.user.id).maybeSingle()),
           4000,
           "Membership status lookup timed out"
+        ),
+        withTimeout(
+          Promise.resolve(supabase.from("profiles").select("role").eq("id", authData.user.id).maybeSingle()),
+          4000,
+          "Profile lookup timed out"
+        ),
+        withTimeout(
+          Promise.resolve(supabase.from("coordinator_assignments").select("role").eq("user_id", authData.user.id)),
+          4000,
+          "Coordinator lookup timed out"
+        )
+      ]);
+
+      // A temporary membership lookup failure must never block a valid authenticated session.
+      if (membershipResult.status === "fulfilled" && !membershipResult.value.error) {
+        needsActivation = membershipResult.value.data?.status === "pending";
+      }
+      if (profileResult.status === "fulfilled" && !profileResult.value.error && profileResult.value.data?.role) {
+        role = profileResult.value.data.role;
+      }
+      if (assignmentResult.status === "fulfilled" && !assignmentResult.value.error) {
+        coordinator = (assignmentResult.value.data || []).some((item: { role: string }) =>
+          ["ward_coordinator", "lga_coordinator", "state_coordinator", "national_admin"].includes(item.role)
         );
-        needsActivation = !membership.error && membership.data?.status === "pending";
-      } catch {
-        // Keep authenticated members able to reach their dashboard during database load.
       }
 
+      // Only pending accounts need this extra write; approved members proceed immediately.
       if (needsActivation) {
         try {
           const activationResult = await withTimeout(
@@ -62,22 +86,6 @@ export default function LoginForm() {
           setMessage("You are signed in, but your membership status could not be refreshed because the database is busy.");
         }
       }
-
-      // Resolve privileged destinations concurrently; failures safely fall back to member access.
-      let role = "member";
-      let coordinator = false;
-      const [profileResult, assignmentResult] = await Promise.allSettled([
-        withTimeout(
-          Promise.resolve(supabase.from("profiles").select("role").eq("id", authData.user.id).maybeSingle()),
-          4000,
-          "Profile lookup timed out"
-        ),
-        withTimeout(
-          Promise.resolve(supabase.from("coordinator_assignments").select("role").eq("user_id", authData.user.id)),
-          4000,
-          "Coordinator lookup timed out"
-        )
-      ]);
 
       if (profileResult.status === "fulfilled" && !profileResult.value.error && profileResult.value.data?.role) {
         role = profileResult.value.data.role;
