@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import NotificationCenter from "@/components/notification-center";
+import MemberNavigation from "@/components/member-navigation";
 
 const NYFB_LOGO_URL = "https://brpqtdqejvlxsyzlyrfv.supabase.co/storage/v1/object/public/nyfb-site-media/website/logo/15fe9ad9-01c7-4bb6-873e-bc8ba989018d.jpg";
 const APC_LOGO_URL = "https://cdn.legit.ng/images/1120/c80c390d3b880d90.jpeg?v=1";
@@ -105,7 +106,7 @@ export default function MemberHome() {
 
         <div className="brand member-brand" style={{marginTop:24}}><img src={NYFB_LOGO_URL} alt="NYFB official logo" /><span>NYFB<small>NIGERIAN YOUTH FOR BAT</small></span></div>
         <NotificationCenter />
-        <div className="member-dashboard-layout">
+        <div className="member-dashboard-layout"><MemberNavigation />
           <div className="member-main-content">
         <div className="member-heading"><div><small>MEMBER PORTAL</small><h1 id="dashboard">Your NYFB dashboard</h1><p>Manage your membership, stay informed and access your member services.</p></div><span className="member-portal-tag">SECURE MEMBER AREA</span></div>
         {busy?<p>Loading your membership details…</p>:error?<div className="form-message form-error">{error}</div>:!member?<p>No membership record was found for this account.</p>:<>
