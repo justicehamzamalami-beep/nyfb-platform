@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import MemberNavigation from "@/components/member-navigation";
 
 const BANKS = [
   "Access Bank", "Citibank Nigeria", "Ecobank Nigeria", "Fidelity Bank",
@@ -169,6 +170,7 @@ export default function BankDetailsPage() {
         </div>
 
         <div className="member-dashboard-layout">
+          <MemberNavigation />
           <div className="member-main-content">
             <header className="member-heading">
               <div>
