@@ -24,15 +24,21 @@ export default function PvcVerificationWorkspace(){
   setLoading(true);setError("");
   const {data:{user},error:authError}=await supabase.auth.getUser();
   if(authError||!user){window.location.assign("/login");return;}
-  const [profile,assignments,result]=await Promise.all([
+  const [profile,assignments]=await Promise.all([
    supabase.from("profiles").select("role").eq("id",user.id).maybeSingle(),
-   supabase.from("coordinator_assignments").select("role,state,lga").eq("user_id",user.id).eq("role","lga_coordinator"),
-   supabase.from("pvc_verifications").select("id,member_user_id,verification_status,verification_method,verified_at,updated_at,members!inner(full_name,member_number,state,lga,ward,phone)").order("updated_at",{ascending:false}).limit(5000)
+   supabase.from("coordinator_assignments").select("role,state,lga").eq("user_id",user.id).eq("role","lga_coordinator")
   ]);
-  if(profile.error||assignments.error||result.error){setError(profile.error?.message||assignments.error?.message||result.error?.message||"Could not load verification records.");setLoading(false);return;}
+  if(profile.error||assignments.error){setError(profile.error?.message||assignments.error?.message||"Could not load coordinator permissions.");setLoading(false);return;}
   if(profile.data?.role!=="national_admin"&&(!assignments.data||assignments.data.length===0)){setError("This workspace is for appointed Local Government Coordinators only.");setLoading(false);return;}
   if(assignments.data?.[0])setArea([assignments.data[0].lga,assignments.data[0].state].filter(Boolean).join(", "));
-  setRows((result.data||[]) as unknown as Row[]);
+  const allRows:Row[]=[];
+  for(let from=0;from<30000;from+=1000){
+   const result=await supabase.from("pvc_verifications").select("id,member_user_id,verification_status,verification_method,verified_at,updated_at,members!inner(full_name,member_number,state,lga,ward,phone)").order("updated_at",{ascending:false}).range(from,from+999);
+   if(result.error){setError(result.error.message);setLoading(false);return;}
+   allRows.push(...((result.data||[]) as unknown as Row[]));
+   if((result.data||[]).length<1000)break;
+  }
+  setRows(allRows);
   setLoading(false);
  }
  useEffect(()=>{void load();},[]);
