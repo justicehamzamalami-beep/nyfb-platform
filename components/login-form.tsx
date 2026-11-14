@@ -62,15 +62,6 @@ export default function LoginForm() {
       if (membershipResult.status === "fulfilled" && !membershipResult.value.error) {
         needsActivation = membershipResult.value.data?.status === "pending";
       }
-      if (profileResult.status === "fulfilled" && !profileResult.value.error && profileResult.value.data?.role) {
-        role = profileResult.value.data.role;
-      }
-      if (assignmentResult.status === "fulfilled" && !assignmentResult.value.error) {
-        coordinator = (assignmentResult.value.data || []).some((item: { role: string }) =>
-          ["ward_coordinator", "lga_coordinator", "state_coordinator", "national_admin"].includes(item.role)
-        );
-      }
-
       // Only pending accounts need this extra write; approved members proceed immediately.
       if (needsActivation) {
         try {
