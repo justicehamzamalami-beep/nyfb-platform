@@ -246,3 +246,9 @@ body{background:var(--nyfb-bg);color:var(--nyfb-ink)}
 .member-menu-toggle{display:none!important}
 @media(max-width:950px){.member-menu-toggle{display:flex!important}.member-dashboard-layout{display:block!important}.member-sidebar{display:none!important}.member-sidebar.is-open{display:flex!important;position:fixed!important;z-index:1202!important;left:0!important;top:0!important;bottom:0!important;width:min(300px,86vw)!important;height:100dvh!important;overflow-y:auto!important;border-radius:0 16px 16px 0!important}.member-menu-backdrop{display:block!important;position:fixed!important;inset:0!important;z-index:1201!important;background:#071b12a6!important;border:0!important}}
 @media(min-width:951px){.member-menu-toggle{display:none!important}.member-sidebar{display:flex!important;position:sticky!important;top:18px!important}.member-dashboard-layout{display:grid!important;grid-template-columns:245px minmax(0,1fr)!important;gap:24px!important}}
+
+
+/* Member portal uses a full-width layout without a side menu. */
+.member-dashboard-layout{display:block!important;grid-template-columns:minmax(0,1fr)!important;gap:0!important;width:100%!important}
+.member-dashboard-layout>.member-main-content{width:100%!important;min-width:0!important;grid-column:1/-1!important}
+.member-sidebar,.member-menu-toggle,.member-menu-backdrop,.member-sidebar-close{display:none!important}
