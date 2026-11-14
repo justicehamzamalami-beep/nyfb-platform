@@ -24,7 +24,6 @@ export default function AdminWorkspace(){
  const [role,setRole]=useState("member");
  const [assignments,setAssignments]=useState<Assignment[]>([]);
  const [tab,setTab]=useState<Tab>("overview");
- const [menuOpen,setMenuOpen]=useState(false);
  const [filter,setFilter]=useState("all");
  const [search,setSearch]=useState("");
  const [loading,setLoading]=useState(true);
@@ -182,23 +181,9 @@ export default function AdminWorkspace(){
  const nav: {id:Tab;label:string;icon:string}[]=[{id:"overview",label:"Dashboard",icon:"⌂"},{id:"members",label:"Membership",icon:"♙"},{id:"announcements",label:"Announcements",icon:"▤"},{id:"activity",label:"Activity log",icon:"◷"},{id:"profile",label:"My profile",icon:"◎"}];
  const audienceLabel=(a:string)=>({all:"Everyone",members:"All members",coordinators:"Coordinators",state:"Selected state"}[a]||a);
  return <main className="ny-admin">
-  {menuOpen&&<><button type="button" className="ny-sidebar-backdrop" aria-label="Close navigation menu" onClick={()=>setMenuOpen(false)}/><aside className="ny-sidebar" id="ny-admin-sidebar">
-   <div className="ny-sidebar-heading"><Link href="/" className="ny-brand"><span className="ny-mark">NY</span><span><b>NYFB</b><small>ADMINISTRATION</small></span></Link><button type="button" className="ny-sidebar-close" aria-label="Close menu" onClick={()=>setMenuOpen(false)}>×</button></div>
-   <div className="ny-side-caption">WORKSPACE</div>
-   <nav>{nav.filter(item=>item.id!=="profile").map(item=><button key={item.id} className={tab===item.id?"active":""} onClick={()=>{setTab(item.id);setNotice("");setError("");setMenuOpen(false);}}><span>{item.icon}</span>{item.label}{item.id==="members"&&counts.pending>0?<i>{counts.pending}</i>:null}</button>)}</nav>
-   <div className="ny-side-caption ny-side-group">MANAGEMENT TOOLS</div>
-   <Link href="/admin/programmes" className="ny-programme-link"><span className="ny-link-icon">▣</span><span className="ny-link-label">Programmes &amp; projects</span><b>→</b></Link>
-   {isNationalAdmin&&<Link href="/admin/coordinators" className="ny-programme-link"><span className="ny-link-icon">♙</span><span className="ny-link-label">Coordinators &amp; teams</span><b>→</b></Link>}
-   {isNationalAdmin&&<Link href="/admin/website" className="ny-programme-link"><span className="ny-link-icon">▧</span><span className="ny-link-label">Website management</span><b>→</b></Link>}
-   <div className="ny-side-caption ny-side-group">ACCOUNT &amp; SUPPORT</div>
-   <button type="button" className="ny-programme-link" style={{background:"transparent",width:"100%",fontFamily:"inherit",textAlign:"left",cursor:"pointer"}} onClick={()=>{setTab("profile");setNotice("");setError("");setMenuOpen(false);}}><span className="ny-link-icon">◎</span><span className="ny-link-label">My profile</span><b>→</b></button>
-   <Link href="/forgot-password" className="ny-programme-link"><span className="ny-link-icon">⚙</span><span className="ny-link-label">Password &amp; security</span><b>→</b></Link>
-   <a href="mailto:nigerianyouthforbat@gmail.com" className="ny-programme-link"><span className="ny-link-icon">?</span><span className="ny-link-label">Help &amp; support</span><b>→</b></a>
-   <Link href="/#about" className="ny-programme-link"><span className="ny-link-icon">ⓘ</span><span className="ny-link-label">About NYFB</span><b>→</b></Link>
-   <div className="ny-side-bottom"><div className="ny-user-avatar">NY</div><div><b>NYFB Workspace</b><small>{role.replaceAll("_"," ")} access</small></div><button aria-label="Sign out" onClick={signOut}>↗</button></div>
-  </aside></>}
+
   <section className="ny-main">
-   <header className="ny-topbar"><div className="ny-topbar-left"><button type="button" className="ny-menu-toggle" aria-expanded={menuOpen} aria-controls="ny-admin-sidebar" onClick={()=>setMenuOpen(v=>!v)}><span>☰</span> Menu</button><div><span>NYFB / </span>{nav.find(n=>n.id===tab)?.label}</div></div><div className="ny-top-actions"><span className="ny-live-dot">● Secure workspace</span><button onClick={()=>void load()}>↻ Refresh</button><button className="ny-top-signout" onClick={signOut}>Sign out</button></div></header>
+   <header className="ny-topbar"><div className="ny-topbar-left"><nav className="ny-inline-nav" aria-label="Workspace navigation">{nav.map(item=><button type="button" key={item.id} className={tab===item.id?"active":""} onClick={()=>{setTab(item.id);setNotice("");setError("");}}>{item.label}{item.id==="members"&&counts.pending>0?<i>{counts.pending}</i>:null}</button>)}<Link href="/admin/programmes">Programmes</Link>{isNationalAdmin&&<Link href="/admin/coordinators">Coordinators</Link>}{isNationalAdmin&&<Link href="/admin/website">Website</Link>}</nav><div><span>NYFB / </span>{nav.find(n=>n.id===tab)?.label}</div></div><div className="ny-top-actions"><span className="ny-live-dot">● Secure workspace</span><button onClick={()=>void load()}>↻ Refresh</button><button className="ny-top-signout" onClick={signOut}>Sign out</button></div></header>
    <div className="ny-content">
     <div className="ny-welcome"><div><div className="ny-eyebrow">NIGERIAN YOUTH FOR BAT · MANAGEMENT PORTAL</div><h1>{tab==="overview"?"Dashboard overview":tab==="members"?"Membership management":tab==="announcements"?"Announcements & broadcasts":tab==="activity"?"Administrative activity":"My profile"}</h1><p>{tab==="overview"?"Monitor membership, manage engagement and keep the organisation moving.":tab==="members"?"View registered members and manage active membership status.":tab==="announcements"?"Prepare official updates and publish them to the right audience.":tab==="activity"?"A trace of recent administrative notifications and actions.":"Your NYFB administration account and assigned access."}</p></div><div className="ny-date-chip">{new Date().toLocaleDateString("en-NG",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div></div>
     {error&&<div className="ny-alert error">{error}</div>}{notice&&<div className="ny-alert">{notice}</div>}
@@ -266,13 +251,14 @@ export default function AdminWorkspace(){
 
 
 
-   .ny-topbar-left{display:flex;align-items:center;gap:16px}
-   .ny-menu-toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;color:#244b35;border-radius:7px;padding:9px 12px;font-size:11px;font-weight:700;cursor:pointer}
-   .ny-sidebar-backdrop{position:fixed;inset:0;z-index:1001;border:0;background:#071b12a6;cursor:pointer}
-   .ny-sidebar-heading{display:flex;align-items:flex-start;justify-content:space-between}
-   .ny-sidebar-heading .ny-brand{padding-bottom:30px}
-   .ny-sidebar-close{border:1px solid #ffffff35;background:#ffffff12;color:#fff;border-radius:8px;width:32px;height:32px;font-size:22px;line-height:1;cursor:pointer}
-   @media(max-width:680px){.ny-topbar-left{gap:8px}.ny-menu-toggle{padding:8px 9px}.ny-topbar{padding:0 10px}.ny-sidebar{width:min(86vw,310px)!important;position:fixed!important;top:0!important;left:0!important;height:100dvh!important;z-index:1002!important}.ny-content{padding:20px 13px}}
+   .ny-topbar-left{display:flex;align-items:center;gap:16px;min-width:0;flex:1}
+   .ny-inline-nav{display:flex;align-items:center;gap:5px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+   .ny-inline-nav::-webkit-scrollbar{display:none}
+   .ny-inline-nav button,.ny-inline-nav a{border:0;background:transparent;color:#627368;padding:9px 10px;border-radius:6px;font:600 10px Arial;text-decoration:none;cursor:pointer;flex:0 0 auto}
+   .ny-inline-nav button.active{background:#edf5ee;color:#126342}
+   .ny-inline-nav button i{font-style:normal;margin-left:5px;background:#d5b66b;color:#183d2d;border-radius:20px;padding:2px 5px;font-size:9px}
+   .ny-inline-nav a:hover,.ny-inline-nav button:hover{background:#f1f5f1;color:#126342}
+   @media(max-width:850px){.ny-topbar{height:auto;min-height:60px;padding:9px 14px;align-items:flex-start;gap:10px;flex-direction:column}.ny-topbar-left{width:100%}.ny-inline-nav{width:100%;padding-bottom:3px}.ny-top-actions{width:100%;justify-content:flex-end}.ny-content{padding:20px 13px}}
   .ny-bank-accordion{overflow:hidden}.ny-bank-accordion>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;list-style:none;padding:18px 20px;margin:0}.ny-bank-accordion>summary::-webkit-details-marker{display:none}.ny-bank-accordion>summary h2{margin:0}.ny-bank-accordion>summary p{margin:5px 0 0}.ny-bank-chevron{flex:0 0 auto;font-size:22px;line-height:1;transition:transform .2s ease}.ny-bank-accordion[open]>summary>.ny-bank-chevron{transform:rotate(180deg)}.ny-bank-accordion:not([open]){margin-bottom:16px}.ny-bank-accordion .ny-table-wrap{padding:0 18px 18px}@media(max-width:600px){.ny-bank-accordion>summary{padding:15px;align-items:flex-start}.ny-bank-accordion .ny-table-wrap{padding:0 10px 12px}}`}</style>
  </main>;
 }
