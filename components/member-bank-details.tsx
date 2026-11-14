@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const BANKS = [
@@ -34,6 +35,7 @@ type BankInfo = {
 };
 
 export default function BankDetailsPage() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [status, setStatus] = useState("");
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
@@ -198,12 +200,14 @@ export default function BankDetailsPage() {
           )}
 
           <aside id="member-sidebar" className={"member-sidebar" + (menuOpen ? " is-open" : "")}>
+            <button type="button" className="member-sidebar-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">×</button>
             <div className="sidebar-label">MEMBER MENU</div>
             {MEMBER_LINKS.map(([href, label, icon]) => (
               <Link
                 key={href}
                 href={href}
-                className={href === "/member/bank-details" ? "active" : ""}
+                className={pathname === href ? "active" : ""}
+                aria-current={pathname === href ? "page" : undefined}
                 onClick={() => setMenuOpen(false)}
               >
                 <span>{icon}</span>{label}
