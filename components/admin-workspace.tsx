@@ -174,7 +174,7 @@ export default function AdminWorkspace(){
       }catch(e){lastError=e instanceof Error?e.message:"Temporary export error.";if(attempt<5)await new Promise(resolve=>setTimeout(resolve,700*attempt));}
      }
      if(!page)throw new Error(lastError+" The export paused safely at "+received.toLocaleString()+" records; no incomplete file was downloaded.");
-     for(const row of page.records)chunks.push(row.map(csvCell).join(",")+"\\r\\n");
+     for(const row of page.records)chunks.push(row.map(csvCell).join(",")+"\r\n");
      received+=page.records.length;offset+=page.records.length;
      setNotice("Preparing complete CSV: "+received.toLocaleString()+" of "+expectedTotal!.toLocaleString()+" records...");
     }
