@@ -1,0 +1,6 @@
+const CACHE_NAME = "nyfb-home-offline-v1";
+self.addEventListener("install", event => {
+ event.waitUntil((async()=>{const cache=await caches.open(CACHE_NAME);try{const response=await fetch("/",{cache:"reload"});if(response.ok)await cache.put("/",response);}catch{}self.skipWaiting();})());
+});
+self.addEventListener("activate",event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith("nyfb-home-offline-")&&k!==CACHE_NAME).map(k=>caches.delete(k)));await self.clients.claim();})());});
+self.addEventListener("fetch",event=>{const request=event.request,url=new URL(request.url);if(request.method!=="GET"||url.origin!==self.location.origin)return;if(request.mode==="navigate"&&url.pathname==="/"){event.respondWith((async()=>{const cache=await caches.open(CACHE_NAME);try{const response=await fetch(request);if(response.ok)await cache.put("/",response.clone());return response;}catch{return(await cache.match("/"))||Response.error();}})());return;}if(url.pathname.startsWith("/_next/static/")){event.respondWith((async()=>{const cache=await caches.open(CACHE_NAME),cached=await cache.match(request);if(cached)return cached;const response=await fetch(request);if(response.ok)await cache.put(request,response.clone());return response;})());}});
