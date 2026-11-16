@@ -11,6 +11,8 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      HAS_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -25,12 +27,9 @@ jobs:
       - name: Deploy to Cloudflare Workers
         if: env.HAS_CLOUDFLARE_TOKEN == 'true'
         env:
-          HAS_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 89f555d8926b0bb1319735de4da6f7bd
         run: npx wrangler deploy
       - name: Explain deployment prerequisite
         if: env.HAS_CLOUDFLARE_TOKEN != 'true'
-        env:
-          HAS_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
         run: echo "Build succeeded, but deployment was skipped. Add CLOUDFLARE_API_TOKEN as a GitHub Actions repository secret, then rerun this workflow."
