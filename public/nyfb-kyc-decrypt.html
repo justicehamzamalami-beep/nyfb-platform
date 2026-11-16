@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NYFB Offline KYC Decryptor</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f3f7f3;color:#173b2b;margin:0;padding:24px}.card{max-width:620px;margin:7vh auto;background:white;border:1px solid #dce8df;border-radius:14px;padding:26px;box-shadow:0 12px 40px #163b2712}h1{font-size:23px;margin:0 0 8px}p{line-height:1.6;color:#52665a;font-size:14px}label{display:block;font-weight:700;font-size:13px;margin:18px 0 7px}input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd9ce;border-radius:8px;font-size:15px}button{margin-top:18px;padding:13px 18px;background:#126342;color:#fff;border:0;border-radius:8px;font-weight:700;font-size:14px}button:disabled{opacity:.5}#status{margin-top:16px;padding:12px;border-radius:8px;background:#edf5ee;white-space:pre-wrap}.warn{background:#fff6e6!important;color:#76551b!important}.small{font-size:12px}
+</style></head>
+<body><main class="card">
+<h1>NYFB Offline KYC Decryptor</h1>
+<p>This page works locally in your browser. It does not upload the encrypted file or passphrase to a server. For maximum privacy, disconnect from the internet before opening this saved HTML file.</p>
+<div class="warn" id="warning" style="padding:12px;border-radius:8px;font-size:13px">Confidential information: use only an authorised, access-controlled computer. Do not share the decrypted CSV or leave it in Downloads after verification.</div>
+<label for="file">Encrypted NYFB file (.nyfbenc)</label><input id="file" type="file" accept=".nyfbenc,application/octet-stream">
+<label for="password">Encryption passphrase</label><input id="password" type="password" autocomplete="off">
+<button id="decrypt">Decrypt and download CSV</button>
+<div id="status" role="status">Select the encrypted file and enter the exact passphrase used during export.</div>
+<p class="small">Format: NYFBKYC1 · PBKDF2-SHA-256 (310,000 iterations) · AES-256-GCM. A wrong passphrase or damaged file will fail authentication.</p>
+</main>
+<script>
+const fileInput=document.getElementById('file'),passwordInput=document.getElementById('password'),button=document.getElementById('decrypt'),status=document.getElementById('status');
+const tell=(message,bad=false)=>{status.textContent=message;status.style.background=bad?'#fff0ed':'#edf5ee';status.style.color=bad?'#963f34':'#28583b';};
+button.addEventListener('click',async()=>{
+ const file=fileInput.files&&fileInput.files[0],pass=passwordInput.value;
+ if(!file){tell('Choose the encrypted NYFB file first.',true);return;}
+ if(pass.length<16){tell('The passphrase must contain at least 16 characters.',true);return;}
+ button.disabled=true;tell('Decrypting locally… Do not close this page.');
+ try{
+  const data=new Uint8Array(await file.arrayBuffer());
+  const magic=new TextDecoder().decode(data.slice(0,8));
+  if(magic!=='NYFBKYC1'||data.length<53)throw new Error('This is not a valid NYFB encrypted KYC file.');
+  const salt=data.slice(8,24),iv=data.slice(24,36),cipher=data.slice(36);
+  const enc=new TextEncoder();
+  const material=await crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['decrypt']);
+  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,cipher);
+  const csv=new Blob([plain],{type:'text/csv;charset=utf-8'});
+  if(csv.size<100)throw new Error('The decrypted file appears empty.');
+  const url=URL.createObjectURL(csv),a=document.createElement('a');a.href=url;a.download='NYFB-confidential-KYC-decrypted.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  tell('Decryption successful. The CSV has been downloaded to this device. Store it securely and permanently delete local copies after verification.');
+ }catch(e){tell(e instanceof Error?e.message:'Decryption failed. Check the file and passphrase.',true);}
+ finally{button.disabled=false;}
+});
+</script></body></html>
