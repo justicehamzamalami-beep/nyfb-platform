@@ -156,13 +156,13 @@ export default function AdminWorkspace(){
     const csvHeaders=["Member Number","Full Name","Email","Phone","Gender","Date of Birth","State","LGA","Ward","Polling Unit","Occupation","Status","Date Joined","Referral Code","NIN Submitted","Bank Details Submitted","Bank Verification Status","PVC Verification Status","PVC Verification Method","PVC Verified At"];
     const csvCell=(value:unknown)=>{let v=String(value??"").replace(/[\r\n\t]+/g," ").trim();if(/^[=+@-]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"';};
     const chunks:string[]=["\uFEFF"+csvHeaders.map(csvCell).join(",")+"\r\n"];
-    const pageSize=200;let offset=0;let expectedTotal:number|null=null;let received=0;
+    const pageSize=200;const snapshotBefore=new Date().toISOString();let offset=0;let expectedTotal:number|null=null;let received=0;
     while(expectedTotal===null||offset<expectedTotal){
      let page:{total:number;offset:number;records:unknown[][]}|null=null;
      let lastError="The membership page could not be retrieved.";
      for(let attempt=1;attempt<=5;attempt++){
       try{
-       const response=await fetch(endpoint,{method:"POST",headers,body:JSON.stringify({format:"csv-page",offset,limit:pageSize}),cache:"no-store"});
+       const response=await fetch(endpoint,{method:"POST",headers,body:JSON.stringify({format:"csv-page",offset,limit:pageSize,snapshotBefore}),cache:"no-store"});
        if(!response.ok){let message="The membership page could not be generated (HTTP "+response.status+").";try{const result=await response.json();if(result?.error)message=result.error;}catch{}throw new Error(message);}
        const candidate=await response.json() as {total:number;offset:number;records:unknown[][]};
        if(!Number.isInteger(candidate.total)||candidate.total<1||candidate.offset!==offset||!Array.isArray(candidate.records))throw new Error("The export returned an invalid page at record "+(offset+1)+".");
