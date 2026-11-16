@@ -154,27 +154,29 @@ export default function AdminWorkspace(){
    const headers={"Authorization":"Bearer "+session.access_token,"apikey":process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY||"","Content-Type":"application/json"};
    if(format==="csv"){
     const csvHeaders=["Member Number","Full Name","Email","Phone","Gender","Date of Birth","State","LGA","Ward","Polling Unit","Occupation","Status","Date Joined","Referral Code","NIN Submitted","Bank Details Submitted","Bank Verification Status","PVC Verification Status","PVC Verification Method","PVC Verified At"];
-    const csvCell=(value:unknown)=>{let v=String(value??"").replace(/[\\r\\n\\t]+/g," ").trim();if(/^[=+@-]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"';};
-    const chunks:string[]=["\\uFEFF"+csvHeaders.map(csvCell).join(",")+"\\r\\n"];
+    const csvCell=(value:unknown)=>{let v=String(value??"").replace(/[\r\n\t]+/g," ").trim();if(/^[=+@-]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"';};
+    const chunks:string[]=["\uFEFF"+csvHeaders.map(csvCell).join(",")+"\r\n"];
     const pageSize=500;let offset=0;let expectedTotal:number|null=null;let received=0;
     while(expectedTotal===null||offset<expectedTotal){
      const response=await fetch(endpoint,{method:"POST",headers,body:JSON.stringify({format:"csv-page",offset,limit:pageSize})});
      if(!response.ok){let message="The membership CSV page could not be generated.";try{const result=await response.json();if(result?.error)message=result.error;}catch{}throw new Error(message);}
      const page=await response.json() as {total:number;offset:number;records:unknown[][]};
-     if(!Number.isInteger(page.total)||page.offset!==offset||!Array.isArray(page.records))throw new Error("The export returned an invalid page. No file was downloaded.");
+     if(!Number.isInteger(page.total)||page.total<1||page.offset!==offset||!Array.isArray(page.records))throw new Error("The export returned an invalid or empty membership page. No file was downloaded.");
      if(expectedTotal===null)expectedTotal=page.total;
      if(page.total!==expectedTotal||page.records.length===0&&received<expectedTotal)throw new Error("The export stopped before all membership records were received. Please retry.");
-     for(const row of page.records)chunks.push(row.map(csvCell).join(",")+"\\r\\n");
+     for(const row of page.records)chunks.push(row.map(csvCell).join(",")+"\r\n");
      received+=page.records.length;offset+=page.records.length;
      setNotice("Preparing complete CSV: "+received.toLocaleString()+" of "+expectedTotal.toLocaleString()+" records...");
      if(page.records.length>pageSize)throw new Error("The export page exceeded its expected size.");
     }
     if(received!==expectedTotal)throw new Error("CSV verification failed: expected "+expectedTotal+" records but received "+received+". No file was downloaded.");
-    const blob=new Blob(chunks,{type:"text/csv;charset=utf-8"});
+    const csvText=chunks.join("");
+    if(csvText.length<100||received===0)throw new Error("The export returned an empty CSV file.");
+    const blob=new Blob([csvText],{type:"text/csv;charset=utf-8"});
     if(blob.size<100)throw new Error("The export returned an empty CSV file.");
     const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;
     link.download="NYFB-complete-membership-register-"+new Date().toISOString().slice(0,10)+".csv";
-    document.body.appendChild(link);link.click();link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),30000);
+    document.body.appendChild(link);link.click();link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),120000);
     setNotice("Verified complete membership CSV downloaded: "+received.toLocaleString()+" records. Bank account numbers, NINs and VINs are excluded.");
    }else{
     const response=await fetch(endpoint,{method:"POST",headers,body:JSON.stringify({format:"pdf"})});
