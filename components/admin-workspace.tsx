@@ -156,18 +156,27 @@ export default function AdminWorkspace(){
     const csvHeaders=["Member Number","Full Name","Email","Phone","Gender","Date of Birth","State","LGA","Ward","Polling Unit","Occupation","Status","Date Joined","Referral Code","NIN Submitted","Bank Details Submitted","Bank Verification Status","PVC Verification Status","PVC Verification Method","PVC Verified At"];
     const csvCell=(value:unknown)=>{let v=String(value??"").replace(/[\r\n\t]+/g," ").trim();if(/^[=+@-]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"';};
     const chunks:string[]=["\uFEFF"+csvHeaders.map(csvCell).join(",")+"\r\n"];
-    const pageSize=500;let offset=0;let expectedTotal:number|null=null;let received=0;
+    const pageSize=200;let offset=0;let expectedTotal:number|null=null;let received=0;
     while(expectedTotal===null||offset<expectedTotal){
-     const response=await fetch(endpoint,{method:"POST",headers,body:JSON.stringify({format:"csv-page",offset,limit:pageSize})});
-     if(!response.ok){let message="The membership CSV page could not be generated.";try{const result=await response.json();if(result?.error)message=result.error;}catch{}throw new Error(message);}
-     const page=await response.json() as {total:number;offset:number;records:unknown[][]};
-     if(!Number.isInteger(page.total)||page.total<1||page.offset!==offset||!Array.isArray(page.records))throw new Error("The export returned an invalid or empty membership page. No file was downloaded.");
-     if(expectedTotal===null)expectedTotal=page.total;
-     if(page.total!==expectedTotal||page.records.length===0&&received<expectedTotal)throw new Error("The export stopped before all membership records were received. Please retry.");
-     for(const row of page.records)chunks.push(row.map(csvCell).join(",")+"\r\n");
+     let page:{total:number;offset:number;records:unknown[][]}|null=null;
+     let lastError="The membership page could not be retrieved.";
+     for(let attempt=1;attempt<=5;attempt++){
+      try{
+       const response=await fetch(endpoint,{method:"POST",headers,body:JSON.stringify({format:"csv-page",offset,limit:pageSize}),cache:"no-store"});
+       if(!response.ok){let message="The membership page could not be generated (HTTP "+response.status+").";try{const result=await response.json();if(result?.error)message=result.error;}catch{}throw new Error(message);}
+       const candidate=await response.json() as {total:number;offset:number;records:unknown[][]};
+       if(!Number.isInteger(candidate.total)||candidate.total<1||candidate.offset!==offset||!Array.isArray(candidate.records))throw new Error("The export returned an invalid page at record "+(offset+1)+".");
+       if(expectedTotal===null)expectedTotal=candidate.total;
+       if(candidate.total<expectedTotal)throw new Error("The membership total changed during export. Restart the export to capture a consistent register.");
+       if(candidate.records.length===0&&offset<expectedTotal)throw new Error("The server returned an empty page at record "+(offset+1)+".");
+       if(candidate.records.length>pageSize)throw new Error("The export page exceeded its expected size.");
+       page=candidate;break;
+      }catch(e){lastError=e instanceof Error?e.message:"Temporary export error.";if(attempt<5)await new Promise(resolve=>setTimeout(resolve,700*attempt));}
+     }
+     if(!page)throw new Error(lastError+" The export paused safely at "+received.toLocaleString()+" records; no incomplete file was downloaded.");
+     for(const row of page.records)chunks.push(row.map(csvCell).join(",")+"\\r\\n");
      received+=page.records.length;offset+=page.records.length;
-     setNotice("Preparing complete CSV: "+received.toLocaleString()+" of "+expectedTotal.toLocaleString()+" records...");
-     if(page.records.length>pageSize)throw new Error("The export page exceeded its expected size.");
+     setNotice("Preparing complete CSV: "+received.toLocaleString()+" of "+expectedTotal!.toLocaleString()+" records...");
     }
     if(received!==expectedTotal)throw new Error("CSV verification failed: expected "+expectedTotal+" records but received "+received+". No file was downloaded.");
     const csvText=chunks.join("");
