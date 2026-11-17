@@ -12,7 +12,7 @@ type MemberRecord = {
 
 const endpoint = () => {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  return base ? base.replace(/\\/$/, "") + "/functions/v1/offline-membership-status" : "";
+  return base ? (base.endsWith("/") ? base.slice(0, -1) : base) + "/functions/v1/offline-membership-status" : "";
 };
 
 function openCache(): Promise<IDBDatabase> {
