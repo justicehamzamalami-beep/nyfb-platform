@@ -1,23 +1,210 @@
 "use client";
-import { FormEvent, useCallback, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-type MemberRecord={membership_id:string;full_name:string;email:string;referral_code:string;referral_count:number};
-type Snapshot={schema_version:number;generated_at:string;total_records:number;records:MemberRecord[]};
-const endpoint=()=>{const base=process.env.NEXT_PUBLIC_SUPABASE_URL;return base?base.replace(/\/$/,"")+"/functions/v1/offline-membership-status":"";};
-function openDb():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const r=indexedDB.open("nyfb-public-membership-cache",1);r.onupgradeneeded=()=>r.result.createObjectStore("snapshots");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
-async function readCached():Promise<Snapshot|null>{try{const db=await openDb();return await new Promise((resolve,reject)=>{const r=db.transaction("snapshots","readonly").objectStore("snapshots").get("latest");r.onsuccess=()=>resolve((r.result as Snapshot)??null);r.onerror=()=>reject(r.error);});}catch{return null;}}
-async function writeCached(value:Snapshot):Promise<void>{const db=await openDb();await new Promise<void>((resolve,reject)=>{const tx=db.transaction("snapshots","readwrite");tx.objectStore("snapshots").put(value,"latest");tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});}
-export default function OfflineStatusChecker(){
- const [snapshot,setSnapshot]=useState<Snapshot|null>(null),[membershipId,setMembershipId]=useState(""),[fullName,setFullName]=useState(""),[email,setEmail]=useState(""),[result,setResult]=useState<MemberRecord|null>(null),[message,setMessage]=useState("Preparing the offline membership database…"),[busy,setBusy]=useState(false),[admin,setAdmin]=useState(false),[online,setOnline]=useState(true);
- const sync=useCallback(async()=>{const url=endpoint();if(!url)throw new Error("The membership checker is not configured.");const response=await fetch(url,{headers:{apikey:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY??""},cache:"no-store"});if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error??"The latest offline database is not available yet.");}const data=await response.json() as Snapshot;if(!Array.isArray(data.records)||data.schema_version!==1)throw new Error("The downloaded membership database is invalid.");await writeCached(data);setSnapshot(data);setMessage("Offline database updated successfully.");},[]);
- useEffect(()=>{const update=()=>setOnline(navigator.onLine);window.addEventListener("online",update);window.addEventListener("offline",update);setOnline(navigator.onLine);if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});readCached().then(c=>{if(c){setSnapshot(c);setMessage("Offline database ready. Last updated "+new Date(c.generated_at).toLocaleString("en-NG")+".");}else setMessage("No offline database is saved on this device yet.");});const client=createClient();client.auth.getUser().then(async({data})=>{if(!data.user)return;const {data:p}=await client.from("profiles").select("role").eq("id",data.user.id).maybeSingle();setAdmin(p?.role==="national_admin");}).catch(()=>{});if(navigator.onLine)sync().catch(e=>setMessage(e instanceof Error?e.message:"Could not update the offline database."));const refresh=()=>{if(navigator.onLine)sync().catch(()=>{});};window.addEventListener("online",refresh);return()=>{window.removeEventListener("online",update);window.removeEventListener("offline",update);window.removeEventListener("online",refresh);};},[sync]);
- function search(e:FormEvent<HTMLFormElement>){e.preventDefault();setResult(null);const id=membershipId.trim().toLowerCase(),name=fullName.trim().toLowerCase(),mail=email.trim().toLowerCase();if(!snapshot){setMessage("The offline database is not available on this device yet. Connect to the internet and update it.");return;}if(!id&&(!name||!mail)){setMessage("Enter a membership ID, or enter both the full name and email address.");return;}const found=snapshot.records.find(row=>id?String(row.membership_id).toLowerCase()===id:String(row.full_name).trim().toLowerCase()===name&&String(row.email).trim().toLowerCase()===mail);if(found){setResult(found);setMessage("Membership record found.");}else setMessage("No matching membership record was found in this saved database.");}
- async function generate(){setBusy(true);setMessage("Generating a fresh offline database from all membership records…");try{const client=createClient();const {data:{session}}=await client.auth.getSession();if(!session?.access_token)throw new Error("Please sign in as the National Administrator first.");const response=await fetch(endpoint(),{method:"POST",headers:{apikey:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY??"",Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:"{}"});const data=await response.json();if(!response.ok)throw new Error(data.error??"Could not generate the offline database.");await sync();setMessage("Offline database generated and published: "+Number(data.total_records).toLocaleString()+" member records.");}catch(e){setMessage(e instanceof Error?e.message:"Offline database generation failed.");}finally{setBusy(false);}}
- const input:React.CSSProperties={width:"100%",padding:"12px 13px",border:"1px solid #d9e4dc",borderRadius:7,fontSize:13,background:"#fff",color:"#173b2a"},label:React.CSSProperties={display:"block",fontSize:10,fontWeight:800,letterSpacing:".6px",color:"#506858",marginBottom:6};
- return <section id="offline-membership-checker" aria-labelledby="offline-checker-title" style={{padding:"64px 7%",background:"#fff",borderTop:"1px solid #e3e9e1",borderBottom:"1px solid #e3e9e1"}}><div style={{maxWidth:1120,margin:"0 auto"}}><div style={{fontSize:9,letterSpacing:2,fontWeight:800,color:"#176b47"}}>MEMBERSHIP SUPPORT · OFFLINE ACCESS</div><h2 id="offline-checker-title" style={{font:"800 clamp(27px,3.5vw,40px)/1.15 Manrope,sans-serif",letterSpacing:"-1.3px",color:"#103d2b",margin:"13px 0"}}>OFFLINE MEMBERSHIP STATUS CHECKER</h2><p style={{maxWidth:760,fontSize:13,lineHeight:1.8,color:"#6e7c73"}}>Check your membership record using your membership ID, or your full name and registered email address. Once this database has been downloaded on this device, you can use it without an internet connection. Connect again to receive updated records.</p>
- <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",margin:"18px 0 24px"}}><span style={{fontSize:11,fontWeight:700,color:online?"#176b47":"#9b5a20"}}>{online?"● ONLINE":"● OFFLINE"}</span><span style={{fontSize:11,color:"#6e7c73"}}>{snapshot?Number(snapshot.total_records).toLocaleString()+" records saved on this device":"No saved database"}</span>{snapshot&&<span style={{fontSize:10,color:"#8a968e"}}>Updated {new Date(snapshot.generated_at).toLocaleString("en-NG")}</span>}<button type="button" onClick={()=>sync().catch(e=>setMessage(e.message))} disabled={!online||busy} style={{marginLeft:"auto",padding:"9px 13px",borderRadius:7,border:"1px solid #cbdaca",background:"#f4f8f3",color:"#176b47",fontSize:11,fontWeight:800,cursor:"pointer"}}>Update database</button>{admin&&<button type="button" onClick={generate} disabled={!online||busy} style={{padding:"9px 13px",borderRadius:7,border:"1px solid #176b47",background:"#176b47",color:"#fff",fontSize:11,fontWeight:800,cursor:"pointer"}}>{busy?"Generating…":"Admin: Generate new package"}</button>}</div>
- <form onSubmit={search} style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:13,padding:20,background:"#f5f7f2",border:"1px solid #e3e9e1",borderRadius:12}}><div><label style={label} htmlFor="offline-member-id">MEMBERSHIP ID</label><input id="offline-member-id" value={membershipId} onChange={e=>{setMembershipId(e.target.value);if(e.target.value){setFullName("");setEmail("");}}} placeholder="e.g. NYFB-000001" style={input}/></div><div><label style={label} htmlFor="offline-full-name">FULL NAME</label><input id="offline-full-name" value={fullName} onChange={e=>{setFullName(e.target.value);if(e.target.value)setMembershipId("");}} placeholder="Enter registered full name" style={input}/></div><div><label style={label} htmlFor="offline-email">EMAIL ADDRESS</label><input id="offline-email" type="email" value={email} onChange={e=>{setEmail(e.target.value);if(e.target.value)setMembershipId("");}} placeholder="Enter registered email" style={input}/></div><div style={{display:"flex",alignItems:"end"}}><button type="submit" style={{width:"100%",padding:12,border:0,borderRadius:7,background:"#176b47",color:"#fff",fontWeight:800,fontSize:12,cursor:"pointer"}}>Check membership</button></div></form>
- <div role="status" aria-live="polite" style={{fontSize:11,color:"#627168",marginTop:13}}>{message}</div>
- {result&&<article style={{marginTop:18,padding:22,border:"1px solid #dce8dc",borderLeft:"4px solid #176b47",borderRadius:10,background:"#fbfdf9"}}><div style={{fontSize:9,letterSpacing:1.4,fontWeight:800,color:"#176b47"}}>MEMBERSHIP RECORD FOUND</div><h3 style={{font:"800 21px Manrope,sans-serif",color:"#103d2b",margin:"10px 0 16px"}}>{result.full_name}</h3><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14}}><div><small style={label}>MEMBERSHIP ID</small><strong style={{fontSize:13,color:"#173b2a"}}>{result.membership_id}</strong></div><div><small style={label}>EMAIL ADDRESS</small><strong style={{fontSize:13,color:"#173b2a",overflowWrap:"anywhere"}}>{result.email}</strong></div><div><small style={label}>TOTAL REFERRALS</small><strong style={{fontSize:13,color:"#173b2a"}}>{Number(result.referral_count).toLocaleString()}</strong></div><div><small style={label}>REFERRAL LINK</small>{result.referral_code?<a href={"https://nigerianyouthforbat.org/join?ref="+encodeURIComponent(result.referral_code)} style={{fontSize:12,fontWeight:800,color:"#176b47",overflowWrap:"anywhere"}}>https://nigerianyouthforbat.org/join?ref={result.referral_code}</a>:<span style={{fontSize:12,color:"#718078"}}>Not available</span>}</div></div></article>}
- <p style={{fontSize:10,lineHeight:1.7,color:"#89958d",marginTop:18}}>This public offline checker contains only membership ID, full name, email address, referral code and referral count. It does not contain NIN, bank details, VIN, phone numbers or other verification documents. The downloaded public database is stored on this device and may remain available offline until browser data is cleared.</p></div></section>;
+
+import { FormEvent, useEffect, useState } from "react";
+
+type MemberRecord = {
+  membership_id: string;
+  full_name: string;
+  email: string;
+  referral_code: string;
+  referral_count: number;
+};
+
+const endpoint = () => {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  return base ? base.replace(/\\/$/, "") + "/functions/v1/offline-membership-status" : "";
+};
+
+function openCache(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("nyfb-private-membership-lookups", 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains("records")) {
+        request.result.createObjectStore("records", { keyPath: "membership_id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveLookup(record: MemberRecord): Promise<void> {
+  const db = await openCache();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("records", "readwrite");
+    tx.objectStore("records").put(record);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function findCached(id: string, name: string, email: string): Promise<MemberRecord | null> {
+  const db = await openCache();
+  return await new Promise((resolve, reject) => {
+    const request = db.transaction("records", "readonly").objectStore("records").getAll();
+    request.onsuccess = () => {
+      const rows = request.result as MemberRecord[];
+      const match = id
+        ? rows.find(row => row.membership_id.toLowerCase() === id)
+        : rows.find(row => row.full_name.trim().toLowerCase() === name && row.email.trim().toLowerCase() === email);
+      resolve(match ?? null);
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export default function OfflineStatusChecker() {
+  const [membershipId, setMembershipId] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [result, setResult] = useState<MemberRecord | null>(null);
+  const [message, setMessage] = useState("Enter your details to check your membership.");
+  const [busy, setBusy] = useState(false);
+  const [online, setOnline] = useState(true);
+  const [cachedCount, setCachedCount] = useState(0);
+
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+    openCache().then(db => new Promise<number>((resolve, reject) => {
+      const request = db.transaction("records", "readonly").objectStore("records").count();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    })).then(setCachedCount).catch(() => {});
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+
+  async function search(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setResult(null);
+    const id = membershipId.trim().toLowerCase();
+    const name = fullName.trim().toLowerCase();
+    const mail = email.trim().toLowerCase();
+
+    if (!id && (!name || !mail)) {
+      setMessage("Enter your membership ID, or enter both your full name and registered email address.");
+      setBusy(false);
+      return;
+    }
+
+    try {
+      if (!navigator.onLine) {
+        const cached = await findCached(id, name, mail);
+        if (cached) {
+          setResult(cached);
+          setMessage("Found on this device. This is a previously saved lookup and may not reflect later changes.");
+        } else {
+          setMessage("This record has not been saved on this device. Connect to the internet once to check and save it for future offline access.");
+        }
+        return;
+      }
+
+      const url = endpoint();
+      if (!url) throw new Error("The membership checker is not configured.");
+      const params = new URLSearchParams(id ? { membership_id: membershipId.trim() } : {
+        full_name: fullName.trim(),
+        email: email.trim(),
+      });
+      const response = await fetch(url + "?" + params.toString(), {
+        method: "GET",
+        headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "" },
+        cache: "no-store",
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Membership lookup failed.");
+      const record = data as MemberRecord;
+      await saveLookup(record);
+      setCachedCount(count => count + 1);
+      setResult(record);
+      setMessage("Membership record found and saved securely on this device for future offline access.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to check membership at this time.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const label: React.CSSProperties = {
+    display: "block", fontSize: 10, fontWeight: 800, letterSpacing: ".6px",
+    color: "#506858", marginBottom: 6,
+  };
+  const input: React.CSSProperties = {
+    width: "100%", padding: "12px 13px", border: "1px solid #d9e4dc",
+    borderRadius: 7, fontSize: 13, background: "#fff", color: "#173b2a",
+  };
+
+  return (
+    <section id="offline-membership-checker" aria-labelledby="offline-checker-title"
+      style={{ padding: "64px 7%", background: "#fff", borderTop: "1px solid #e3e9e1", borderBottom: "1px solid #e3e9e1" }}>
+      <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+        <div style={{ fontSize: 9, letterSpacing: 2, fontWeight: 800, color: "#176b47" }}>MEMBERSHIP SUPPORT · OFFLINE ACCESS</div>
+        <h2 id="offline-checker-title" style={{ font: "800 clamp(27px,3.5vw,40px)/1.15 Manrope,sans-serif", letterSpacing: "-1.3px", color: "#103d2b", margin: "13px 0" }}>
+          MEMBERSHIP STATUS CHECKER
+        </h2>
+        <p style={{ maxWidth: 760, fontSize: 13, lineHeight: 1.8, color: "#6e7c73" }}>
+          Check your membership using your membership ID, or your full name and registered email address.
+          After a successful online lookup, that individual result is saved on this device and can be viewed
+          again without internet access. Connect once to check a record that has not previously been saved here.
+        </p>
+
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", margin: "18px 0 24px" }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: online ? "#176b47" : "#9b5a20" }}>{online ? "● ONLINE" : "● OFFLINE"}</span>
+          <span style={{ fontSize: 11, color: "#6e7c73" }}>{cachedCount} individual lookup(s) saved on this device</span>
+        </div>
+
+        <form onSubmit={search} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 13, padding: 20, background: "#f5f7f2", border: "1px solid #e3e9e1", borderRadius: 12 }}>
+          <div>
+            <label style={label} htmlFor="offline-member-id">MEMBERSHIP ID</label>
+            <input id="offline-member-id" value={membershipId} onChange={e => { setMembershipId(e.target.value); if (e.target.value) { setFullName(""); setEmail(""); } }} placeholder="Enter membership ID" style={input} />
+          </div>
+          <div>
+            <label style={label} htmlFor="offline-full-name">FULL NAME</label>
+            <input id="offline-full-name" value={fullName} onChange={e => { setFullName(e.target.value); if (e.target.value) setMembershipId(""); }} placeholder="Enter registered full name" style={input} />
+          </div>
+          <div>
+            <label style={label} htmlFor="offline-email">EMAIL ADDRESS</label>
+            <input id="offline-email" type="email" value={email} onChange={e => { setEmail(e.target.value); if (e.target.value) setMembershipId(""); }} placeholder="Enter registered email" style={input} />
+          </div>
+          <div style={{ display: "flex", alignItems: "end" }}>
+            <button type="submit" disabled={busy} style={{ width: "100%", padding: 12, border: 0, borderRadius: 7, background: "#176b47", color: "#fff", fontWeight: 800, fontSize: 12, cursor: busy ? "wait" : "pointer" }}>
+              {busy ? "Checking…" : "Check membership"}
+            </button>
+          </div>
+        </form>
+
+        <div role="status" aria-live="polite" style={{ fontSize: 11, color: "#627168", marginTop: 13 }}>{message}</div>
+
+        {result && (
+          <article style={{ marginTop: 18, padding: 22, border: "1px solid #dce8dc", borderLeft: "4px solid #176b47", borderRadius: 10, background: "#fbfdf9" }}>
+            <div style={{ fontSize: 9, letterSpacing: 1.4, fontWeight: 800, color: "#176b47" }}>MEMBERSHIP RECORD FOUND</div>
+            <h3 style={{ font: "800 21px Manrope,sans-serif", color: "#103d2b", margin: "10px 0 16px" }}>{result.full_name}</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14 }}>
+              <div><small style={label}>MEMBERSHIP ID</small><strong style={{ fontSize: 13, color: "#173b2a" }}>{result.membership_id}</strong></div>
+              <div><small style={label}>EMAIL ADDRESS</small><strong style={{ fontSize: 13, color: "#173b2a", overflowWrap: "anywhere" }}>{result.email}</strong></div>
+              <div><small style={label}>TOTAL REFERRALS</small><strong style={{ fontSize: 13, color: "#173b2a" }}>{Number(result.referral_count).toLocaleString()}</strong></div>
+              <div>
+                <small style={label}>REFERRAL LINK</small>
+                {result.referral_code
+                  ? <a href={"https://nigerianyouthforbat.org/join?ref=" + encodeURIComponent(result.referral_code)} style={{ fontSize: 12, fontWeight: 800, color: "#176b47", overflowWrap: "anywhere" }}>https://nigerianyouthforbat.org/join?ref={result.referral_code}</a>
+                  : <span style={{ fontSize: 12, color: "#718078" }}>Not available</span>}
+              </div>
+            </div>
+          </article>
+        )}
+
+        <p style={{ fontSize: 10, lineHeight: 1.7, color: "#89958d", marginTop: 18 }}>
+          For privacy, this checker retrieves one matching record at a time. It does not publish or download the
+          complete membership database. Only records previously checked on this device can be viewed offline.
+          NIN, bank details, VIN and verification documents are never included.
+        </p>
+      </div>
+    </section>
+  );
 }
