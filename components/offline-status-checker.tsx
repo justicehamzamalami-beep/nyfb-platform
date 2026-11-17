@@ -125,7 +125,7 @@ export default function OfflineStatusChecker() {
       await saveLookup(record);
       setCachedCount(count => count + 1);
       setResult(record);
-      setMessage("Membership record found and saved securely on this device for future offline access.");
+      setMessage("Membership record found and saved on this device for future offline access.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to check membership at this time.");
     } finally {
