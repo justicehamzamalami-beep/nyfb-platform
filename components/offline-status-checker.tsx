@@ -64,6 +64,8 @@ export default function OfflineStatusChecker() {
   const [cachedCount, setCachedCount] = useState(0);
 
   useEffect(() => {
+    // Remove the previous version’s complete public snapshot from this browser.
+    indexedDB.deleteDatabase("nyfb-public-membership-cache");
     const update = () => setOnline(navigator.onLine);
     update();
     window.addEventListener("online", update);
