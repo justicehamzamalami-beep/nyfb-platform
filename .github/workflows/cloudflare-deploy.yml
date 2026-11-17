@@ -23,6 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Build OpenNext application
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://brpqtdqejvlxsyzlyrfv.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_UElqtC2ySL6tG_DzRAKvYg_lbDTuqi9
         run: npx opennextjs-cloudflare build
       - name: Deploy to Cloudflare Workers
         if: env.HAS_CLOUDFLARE_TOKEN == 'true'
