@@ -6,6 +6,9 @@ import WhatsAppCommunityButton from "@/components/whatsapp-community-button";
 export const metadata: Metadata = {
   title: "NYFB | Nigerian Youth for BAT",
   description: "The official digital membership and engagement platform for Nigerian Youth for BAT.",
+  other: {
+    "google-adsense-account": "ca-pub-3465365222702959",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{children: React.ReactNode}>) {
