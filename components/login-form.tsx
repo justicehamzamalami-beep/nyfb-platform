@@ -2,7 +2,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 
 function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -23,79 +23,27 @@ export default function LoginForm() {
     setMessage("");
     const data = new FormData(e.currentTarget);
     try {
-      const supabase = createClient();
-      const { data: authData, error } = await withTimeout(
-        supabase.auth.signInWithPassword({
+      const { error } = await withTimeout(
+        authClient.signIn.email({
           email: String(data.get("email")).trim().toLowerCase(),
           password: String(data.get("password"))
         }),
         20000,
-        "NYFB sign-in is taking longer than expected. The authentication service is currently unstable. Please wait a moment and try again; your password has not been changed."
+        "NYFB sign-in is taking longer than expected. Please wait a moment and try again."
       );
-      if (error) throw error;
-      if (!authData.user) throw new Error("Sign-in could not be completed. Please try again.");
+      if (error) throw new Error(error.message || "Unable to sign in. Please check your details.");
 
-      // Run the three small post-auth lookups together so database latency is paid once,
-      // not once for membership and again for role routing.
-      let needsActivation = false;
-      let role = "member";
-      let coordinator = false;
-      const [membershipResult, profileResult, assignmentResult] = await Promise.allSettled([
-        withTimeout(
-          Promise.resolve(supabase.from("members").select("status").eq("user_id", authData.user.id).maybeSingle()),
-          4000,
-          "Membership status lookup timed out"
-        ),
-        withTimeout(
-          Promise.resolve(supabase.from("profiles").select("role").eq("id", authData.user.id).maybeSingle()),
-          4000,
-          "Profile lookup timed out"
-        ),
-        withTimeout(
-          Promise.resolve(supabase.from("coordinator_assignments").select("role").eq("user_id", authData.user.id)),
-          4000,
-          "Coordinator lookup timed out"
-        )
-      ]);
-
-      // A temporary membership lookup failure must never block a valid authenticated session.
-      if (membershipResult.status === "fulfilled" && !membershipResult.value.error) {
-        needsActivation = membershipResult.value.data?.status === "pending";
-      }
-      // Only pending accounts need this extra write; approved members proceed immediately.
-      if (needsActivation) {
-        try {
-          const activationResult = await withTimeout(
-            Promise.resolve(supabase.rpc("activate_own_membership")),
-            5000,
-            "Membership activation is temporarily delayed"
-          );
-          if (activationResult.error) {
-            setMessage("You are signed in, but your membership is still awaiting activation. Please contact NYFB support if this continues.");
-          }
-        } catch {
-          setMessage("You are signed in, but your membership status could not be refreshed because the database is busy.");
-        }
+      const response = await withTimeout(
+        fetch("/api/member/session-context", { method: "GET", cache: "no-store", credentials: "same-origin" }),
+        10000,
+        "Your account is signed in, but loading your NYFB access profile timed out. Please try again."
+      );
+      const context = await response.json();
+      if (!response.ok) {
+        throw new Error(context.error || "Your account is signed in, but your NYFB access profile could not be loaded.");
       }
 
-      if (profileResult.status === "fulfilled" && !profileResult.value.error && profileResult.value.data?.role) {
-        role = profileResult.value.data.role;
-      }
-      if (assignmentResult.status === "fulfilled" && !assignmentResult.value.error) {
-        coordinator = (assignmentResult.value.data || []).some((item: { role: string }) =>
-          ["ward_coordinator", "lga_coordinator", "state_coordinator", "national_admin"].includes(item.role)
-        );
-      }
-
-      if (role === "national_admin") {
-        router.replace("/admin");
-        return;
-      }
-      if (coordinator || ["ward_coordinator", "lga_coordinator", "state_coordinator"].includes(role)) {
-        router.replace("/coordinator");
-      } else {
-        router.replace("/member");
-      }
+      router.replace(context.destination || "/member");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Unable to sign in. Please try again.");
     } finally {
