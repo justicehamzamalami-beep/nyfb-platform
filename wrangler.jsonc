@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "nyfb-platform",
+  "name": "nyfb-platform-staging",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-11-10",
   "compatibility_flags": [
