@@ -28,8 +28,8 @@ Latest Neon staging check:
 
 ## Not yet verified
 
-- The application build workflow is still pending/in progress at the time this note was written.
-- No end-to-end login has been tested using an actual member password.
+- The OpenNext staging build now passes on GitHub Actions (run 45356627069). The workflow intentionally skipped deployment.
+- No end-to-end login has been tested using an actual member password; build success does not validate password verification at runtime.
 - No end-to-end signup has been completed in the staging application.
 - The new database registration trigger has been installed, but its complete browser-to-database path still requires a controlled test.
 - The existing Supabase RLS rules, application permissions, dashboard queries and all data workflows have not yet been ported.
