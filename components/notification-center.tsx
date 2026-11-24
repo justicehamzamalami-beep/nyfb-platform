@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 type UserNotification = {
   id: string;
@@ -17,73 +16,62 @@ export default function NotificationCenter() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const loadNotifications = useCallback(async (userId: string, supabase = createClient()) => {
-    const { data, error } = await supabase
-      .from("user_notifications")
-      .select("id,title,message,notification_type,read_at,created_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(30);
-    if (!error) setItems((data || []) as UserNotification[]);
-    setLoading(false);
+  const loadNotifications = useCallback(async () => {
+    try {
+      const response = await fetch("/api/member/notifications", {
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      if (response.status === 401) {
+        window.location.replace("/login");
+        return;
+      }
+      const data = await response.json();
+      if (response.ok) setItems((data.notifications || []) as UserNotification[]);
+    } catch {
+      // Keep the last successful notification list visible during transient network errors.
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
-    let channel: any;
     let disposed = false;
-    const onVisible = () => {
-      if (document.visibilityState === "visible" && userId) void loadNotifications(userId, supabase);
+    const refresh = () => {
+      if (!disposed && document.visibilityState === "visible") void loadNotifications();
     };
-    let userId = "";
-    void (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || disposed) { setLoading(false); return; }
-      userId = user.id;
-      await loadNotifications(user.id, supabase);
-      if (disposed) return;
-      channel = supabase
-        .channel("nyfb-user-notifications-" + user.id)
-        .on("postgres_changes", {
-          event: "*",
-          schema: "public",
-          table: "user_notifications",
-          filter: "user_id=eq." + user.id,
-        }, () => { void loadNotifications(user.id, supabase); })
-        .subscribe();
-      document.addEventListener("visibilitychange", onVisible);
-    })();
+    void loadNotifications();
+    document.addEventListener("visibilitychange", refresh);
+    const timer = window.setInterval(refresh, 60_000);
     return () => {
       disposed = true;
-      document.removeEventListener("visibilitychange", onVisible);
-      if (channel) void supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", refresh);
+      window.clearInterval(timer);
     };
   }, [loadNotifications]);
 
   async function markRead(id: string) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const response = await fetch("/api/member/notifications", {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (!response.ok) return;
     const now = new Date().toISOString();
-    const { error } = await supabase
-      .from("user_notifications")
-      .update({ read_at: now })
-      .eq("id", id)
-      .eq("user_id", user.id);
-    if (!error) setItems(current => current.map(item => item.id === id ? { ...item, read_at: now } : item));
+    setItems(current => current.map(item => item.id === id ? { ...item, read_at: now } : item));
   }
 
   async function markAllRead() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const response = await fetch("/api/member/notifications", {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ markAll: true }),
+    });
+    if (!response.ok) return;
     const now = new Date().toISOString();
-    const { error } = await supabase
-      .from("user_notifications")
-      .update({ read_at: now })
-      .eq("user_id", user.id)
-      .is("read_at", null);
-    if (!error) setItems(current => current.map(item => ({ ...item, read_at: item.read_at || now })));
+    setItems(current => current.map(item => ({ ...item, read_at: item.read_at || now })));
   }
 
   const unread = items.filter(item => !item.read_at).length;
