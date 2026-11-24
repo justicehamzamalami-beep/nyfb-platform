@@ -18,7 +18,10 @@
     "@supabase/supabase-js": "2.119.0",
     "next": "16.4.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "better-auth": "^1.6.0",
+    "bcryptjs": "^3.0.2",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/node": "22.19.1",
@@ -27,6 +30,7 @@
     "eslint": "9.39.1",
     "eslint-config-next": "16.4.6",
     "typescript": "5.9.3",
-    "wrangler": "4.159.0"
+    "wrangler": "4.159.0",
+    "@types/pg": "^8.15.5"
   }
 }
