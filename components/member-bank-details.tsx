@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import MemberNavigation from "@/components/member-navigation";
 
 const BANKS = [
@@ -18,15 +17,8 @@ const BANKS = [
   "Carbon Microfinance Bank",
 ].sort();
 
-type BankInfo = {
-  bank_name: string;
-  account_number: string;
-  account_name: string;
-};
-
 export default function BankDetailsPage() {
   const [status, setStatus] = useState("");
-  const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
   const [bank, setBank] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
@@ -42,44 +34,27 @@ export default function BankDetailsPage() {
     let active = true;
     const load = async () => {
       try {
-        const db = createClient();
-        const { data: { session }, error: authError } = await db.auth.getSession();
-        const user = session?.user;
-        if (authError || !user) {
+        const response = await fetch("/api/member/bank-details", {
+          method: "GET",
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        if (response.status === 401) {
           window.location.replace("/login");
           return;
         }
-
-        const [memberResult, detailsResult] = await Promise.all([
-          db.from("members").select("status").eq("user_id", user.id).maybeSingle(),
-          db.from("member_bank_accounts")
-            .select("bank_name,account_number,account_name,verification_status")
-            .eq("user_id", user.id)
-            .maybeSingle(),
-        ]);
-
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Unable to load bank details.");
         if (!active) return;
-        if (memberResult.error) setError(memberResult.error.message);
-        else setStatus(memberResult.data?.status || "");
-
-        if (detailsResult.error && detailsResult.error.code !== "PGRST116") {
-          setError(detailsResult.error.message);
-        } else if (detailsResult.data) {
-          setVerification(detailsResult.data.verification_status || "");
-          setBankInfo({
-            bank_name: detailsResult.data.bank_name,
-            account_number: detailsResult.data.account_number,
-            account_name: detailsResult.data.account_name,
-          });
-          setSaved(true);
-        }
+        setStatus(data.saved ? "approved" : "");
+        setVerification(data.verificationStatus || "");
+        setSaved(Boolean(data.saved));
       } catch (e) {
         if (active) setError(e instanceof Error ? e.message : "Unable to load bank details.");
       } finally {
         if (active) setLoading(false);
       }
     };
-
     void load();
     return () => { active = false; };
   }, []);
@@ -100,28 +75,23 @@ export default function BankDetailsPage() {
 
     setSaving(true);
     try {
-      const db = createClient();
-      const { data: { session }, error: authError } = await db.auth.getSession();
-      const user = session?.user;
-      if (authError || !user) throw new Error("Please sign in again.");
-
-      const payload = {
-        user_id: user.id,
-        bank_name: bank,
-        account_number: accountNumber,
-        account_name: accountName.trim(),
-        verification_status: "pending",
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = verification
-        ? await db.from("member_bank_accounts").update(payload).eq("user_id", user.id)
-        : await db.from("member_bank_accounts").insert(payload);
-
-      if (result.error) throw result.error;
-
-      setVerification("pending");
-      setBankInfo({ bank_name: bank, account_number: accountNumber, account_name: accountName.trim() });
+      const response = await fetch("/api/member/bank-details", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bankName: bank,
+          accountNumber,
+          accountName: accountName.trim(),
+        }),
+      });
+      const data = await response.json();
+      if (response.status === 401) {
+        window.location.replace("/login");
+        return;
+      }
+      if (!response.ok) throw new Error(data.error || "Unable to save bank details.");
+      setVerification(data.verificationStatus || "pending");
       setSaved(true);
       setEditing(false);
       setBank("");
@@ -207,11 +177,9 @@ export default function BankDetailsPage() {
               ) : saved && !editing ? (
                 <div style={{ marginTop: 22, padding: 18, border: "1px solid #b8f5c9", borderRadius: 10, background: "#124832" }}>
                   <p role="status" style={{ margin: 0, color: "#b8f5c9", fontWeight: 800 }}>✓ Bank details saved successfully.</p>
-                  <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-                    <p style={{ margin: 0, color: "#d1e9d8" }}><b>Bank:</b> {bankInfo?.bank_name || "—"}</p>
-                    <p style={{ margin: 0, color: "#d1e9d8" }}><b>Account name:</b> {bankInfo?.account_name || "—"}</p>
-                    <p style={{ margin: 0, color: "#d1e9d8" }}><b>Account number:</b> {bankInfo?.account_number || "—"}</p>
-                  </div>
+                  <p style={{ margin: "12px 0 0", color: "#d1e9d8" }}>
+                    Your account information is securely recorded and is not displayed here.
+                  </p>
                   <p style={{ margin: "12px 0 0", color: "#d1e9d8" }}>
                     Verification status: <b>{(verification || "pending").toUpperCase()}</b>
                   </p>
