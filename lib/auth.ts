@@ -15,6 +15,9 @@ export function createNyfbAuth(env: NyfbWorkerEnv) {
   if (!env.BETTER_AUTH_SECRET || env.BETTER_AUTH_SECRET.length < 32) {
     throw new Error("NYFB authentication secret is not configured correctly.");
   }
+  if (!env.BETTER_AUTH_URL || !env.BETTER_AUTH_URL.startsWith("https://")) {
+    throw new Error("NYFB authentication base URL is not configured correctly.");
+  }
 
   // A request-scoped pool avoids reusing Node sockets across Worker requests.
   const pool = new Pool({
