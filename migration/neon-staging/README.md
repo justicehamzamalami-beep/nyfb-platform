@@ -34,14 +34,23 @@ The baseline was applied to the isolated Neon staging branch and verified by lis
 - member_nin_records: 30,735
 - user_notifications: 32,720
 - pvc_verifications: 32,960
+- audit_logs: 316
+- campus_mobilizers: 17
+- site_content: 4
+- support_groups: 20
+- welfare_applications: 68
 - Supabase Auth users: 32,960
 
-Production Supabase remains the active source of truth. No member records, NINs, bank details, password hashes, sessions, or files have been copied to Neon.
+## Staging data transfer status (2026-11-24)
+
+The 13 production tables containing records have been copied to the isolated Neon staging branch. All counts match the production source for the checked tables. The seven remaining public tables are empty in production and their schema exists in staging. The complete 32,960 Better Auth user rows and 32,960 credential account rows were imported while preserving the original UUIDs and bcrypt password hashes. A sorted digest comparison confirms the imported password hashes match the Supabase source exactly. Foreign-key orphan checks for profiles, members, bank accounts, NIN records, PVC records, referrals, rewards, and notifications all returned zero. The `member_number_seq` sequence was aligned to production's last value (202122).
+
+This is a staging copy only. Production Supabase remains the active source of truth. No production traffic has been redirected. A snapshot of the data is not yet an ongoing replication stream; changes made in Supabase after the export must be captured in a final delta sync before any cutover.
 
 ## Not yet complete
 
-1. Authentication: Managed Neon Auth cannot import existing Supabase password hashes. However, current Better Auth supports custom password verification; a self-managed Better Auth setup can be tested with a bcrypt-compatible verifier (for example bcryptjs) against imported Supabase bcrypt hashes. Preserve UUIDs by using the existing UUID string as the Better Auth user ID and maintaining the auth.users compatibility row / mapping. Existing Supabase sessions are not portable, so users may need to sign in again at cutover, but a password reset should not be required if bcrypt verification and credential import pass staging tests. Do not disable existing login until then.
-2. Data: bulk transfer, row-count reconciliation, FK validation, sequence alignment, and incremental/delta sync are pending.
+1. Authentication: imported bcrypt credentials are verified to match byte-for-byte, but Better Auth login must still be tested in the actual Cloudflare Worker runtime. Use Better Auth custom password `verify` with bcryptjs and `hash` with bcryptjs for newly created/changed passwords. Existing Supabase sessions are not portable, so users will need to sign in again at cutover; a password reset should not be required if the runtime test passes.
+2. Data: initial bulk transfer and row-count/FK checks are complete for all non-empty public tables. A final delta sync and a cutover reconciliation are still required.
 3. Security: production has 58 RLS policies across 20 tables. Equivalent authorization must be implemented and tested before any app cutover. This baseline does not copy RLS policies or privileged triggers/functions.
 4. Storage: production has public member photos and site media, plus private national ID and offline-status buckets. Cloudflare R2 is not activated on the connected Cloudflare account yet; the API returns an instruction to enable R2 in the dashboard. Create buckets and migrate files only after activation. Keep private ID files private.
 5. App code: this branch is staging-only. Existing production app and Supabase configuration have not been changed. Build and test a Neon data layer and auth flow before deployment.
