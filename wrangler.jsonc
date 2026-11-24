@@ -3,12 +3,20 @@
   "name": "nyfb-platform",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-11-10",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
   "observability": {
     "enabled": true
-  }
+  },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "4f39eda77da444768ea9e026ac44f732"
+    }
+  ]
 }
