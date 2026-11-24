@@ -9,6 +9,7 @@ Date: 24 November 2026
 - Added a Better Auth browser client.
 - Switched the staging login form to Better Auth and server-side role routing.
 - Switched the staging join form to Better Auth.
+- Added a shared server-side authorization context that verifies Better Auth sessions, loads the user's role and coordinator assignments, and provides reusable national-admin, approved-member, own-record and state/LGA/ward-scope checks. The session-context route now uses this shared helper.
 - Configured bcrypt password verification for existing migrated password hashes; new passwords continue to be stored as bcrypt.
 - Added optional registration fields to Better Auth with private response handling for NIN, referral code and the one-device registration token.
 - Added a Neon trigger that creates the UUID compatibility record, profile, pending member record, optional NIN record, PVC verification row and referral entry when a new Better Auth user is inserted.
@@ -26,13 +27,18 @@ Latest Neon staging check:
 - No Better Auth users are missing a profile or member row.
 - No member rows are missing their corresponding Better Auth user.
 
+## Data count reconciliation (24 November 2026)
+
+A fresh read-only comparison of all 20 public business tables on Supabase production and Neon staging found zero row-count differences. This confirms table-level count parity at the time of the check; it does not yet prove every field, relationship, file object or concurrent write is identical.
+
 ## Not yet verified
 
 - The OpenNext staging build now passes on GitHub Actions (run 45356627069). The workflow intentionally skipped deployment.
 - No end-to-end login has been tested using an actual member password; build success does not validate password verification at runtime.
 - No end-to-end signup has been completed in the staging application.
 - The new database registration trigger has been installed, but its complete browser-to-database path still requires a controlled test.
-- The existing Supabase RLS rules, application permissions, dashboard queries and all data workflows have not yet been ported.
+- Neon currently has zero public-schema RLS policies. The 58 Supabase policies remain an explicit security blocker: the shared authorization helper is a foundation, not a complete policy replacement. Each API route and database operation must enforce its matching rule before that feature is enabled.
+- Dashboard queries and all data workflows have not yet been ported.
 - The staging Worker has not been deployed and no production cutover has occurred.
 - Cloudflare Worker secrets, including a generated Better Auth secret and staging base URL, must be configured before runtime testing.
 - Existing Supabase-backed dashboard and admin screens remain to be migrated.
