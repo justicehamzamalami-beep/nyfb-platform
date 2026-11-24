@@ -1,0 +1,42 @@
+# Better Auth and registration integration — staging
+
+Date: 24 November 2026
+
+## Implemented on migration/neon-staging
+
+- Added Better Auth server configuration using the Neon Hyperdrive binding.
+- Added the Better Auth `/api/auth/*` route.
+- Added a Better Auth browser client.
+- Switched the staging login form to Better Auth and server-side role routing.
+- Switched the staging join form to Better Auth.
+- Configured bcrypt password verification for existing migrated password hashes; new passwords continue to be stored as bcrypt.
+- Added optional registration fields to Better Auth with private response handling for NIN, referral code and the one-device registration token.
+- Added a Neon trigger that creates the UUID compatibility record, profile, pending member record, optional NIN record, PVC verification row and referral entry when a new Better Auth user is inserted.
+- Added a second trigger that clears one-time sensitive signup values (NIN, browser key and referral code) from the Better Auth user row after they have been copied into the appropriate protected NYFB records.
+- Enforced one account per browser/device using a SHA-256 digest of the registration token in a private table.
+- Added a staging CI workflow trigger. Staging pushes build the app but are explicitly prevented from deploying to the production Worker.
+
+## Identity and relationship reconciliation
+
+Latest Neon staging check:
+- 32,960 compatibility auth UUIDs.
+- 32,960 Better Auth users.
+- All 32,960 Better Auth user IDs match compatibility auth UUIDs.
+- All 32,960 credential accounts are linked to a Better Auth user and contain bcrypt-formatted hashes.
+- No Better Auth users are missing a profile or member row.
+- No member rows are missing their corresponding Better Auth user.
+
+## Not yet verified
+
+- The application build workflow is still pending/in progress at the time this note was written.
+- No end-to-end login has been tested using an actual member password.
+- No end-to-end signup has been completed in the staging application.
+- The new database registration trigger has been installed, but its complete browser-to-database path still requires a controlled test.
+- The existing Supabase RLS rules, application permissions, dashboard queries and all data workflows have not yet been ported.
+- The staging Worker has not been deployed and no production cutover has occurred.
+- Cloudflare Worker secrets, including a generated Better Auth secret and staging base URL, must be configured before runtime testing.
+- Existing Supabase-backed dashboard and admin screens remain to be migrated.
+
+## Safety boundary
+
+Do not deploy this branch to the public NYFB domain or change the production Worker. Keep Supabase production active until staging build, auth, signup, authorization, privacy, admin/member workflows, storage and final data reconciliation all pass.
