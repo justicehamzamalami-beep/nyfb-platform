@@ -18,5 +18,23 @@
       "binding": "HYPERDRIVE",
       "id": "4f39eda77da444768ea9e026ac44f732"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEMBER_PHOTOS",
+      "bucket_name": "nyfb-member-photos-staging"
+    },
+    {
+      "binding": "NATIONAL_IDS",
+      "bucket_name": "nyfb-national-ids-staging"
+    },
+    {
+      "binding": "OFFLINE_STATUS",
+      "bucket_name": "nyfb-offline-status-staging"
+    },
+    {
+      "binding": "SITE_MEDIA",
+      "bucket_name": "nyfb-site-media-staging"
+    }
   ]
 }
