@@ -1,7 +1,7 @@
 "use client";
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("Registration is taking too long. Please try again.")), ms);
@@ -21,24 +21,23 @@ export default function JoinForm() {
     const referralCode = new URLSearchParams(window.location.search).get("ref")?.trim() || "";
     try {
       const registrationKey = localStorage.getItem("nyfb-registration-device-token") || (localStorage.setItem("nyfb-registration-device-token", crypto.randomUUID()), localStorage.getItem("nyfb-registration-device-token"));
-      const supabase = createClient();
-      const {data,error} = await withTimeout(supabase.auth.signUp({
+      const { error } = await withTimeout(authClient.signUp.email({
+        name: String(v.full_name).trim(),
         email: String(v.email).trim().toLowerCase(),
         password: String(v.password),
-        options: { emailRedirectTo: "https://nigerianyouthforbat.org/auth/callback", data: {
-          full_name: String(v.full_name).trim(), phone: String(v.phone).trim(),
-          nin_number: String(v.nin_number || "").trim(),
-          gender: String(v.gender||""), date_of_birth: String(v.date_of_birth||""),
-          state: String(v.state).trim(), lga: String(v.lga).trim(),
-          ward: String(v.ward||"").trim(), occupation: String(v.occupation||"").trim(),
-          referral_code: referralCode,
-          browser_registration_key: registrationKey
-        }}
-      }),20000);
-      if(error) throw error;
-      setMessage({text:data.session
-        ? "Your account and membership application have been created successfully. You can now sign in."
-        : "Your registration has been received. If email confirmation is enabled, confirm your email before signing in."});
+        phone: String(v.phone).trim(),
+        ninNumber: String(v.nin_number || "").trim(),
+        gender: String(v.gender || ""),
+        dateOfBirth: String(v.date_of_birth || ""),
+        state: String(v.state).trim(),
+        lga: String(v.lga).trim(),
+        ward: String(v.ward || "").trim(),
+        occupation: String(v.occupation || "").trim(),
+        referralCode,
+        browserRegistrationKey: registrationKey,
+      }), 20000);
+      if (error) throw new Error(error.message || "Registration could not be completed.");
+      setMessage({text:"Your account and membership application have been created successfully. You can now sign in."});
       formElement.reset();
     } catch(err) {
       setMessage({text:err instanceof Error?err.message:"Registration could not be completed. Please try again.",error:true});
