@@ -17,6 +17,10 @@ Date: 24 November 2026
 - Enforced one account per browser/device using a SHA-256 digest of the registration token in a private table.
 - Added a staging CI workflow trigger. Staging pushes build the app but are explicitly prevented from deploying to the production Worker.
 
+
+- Added a national-admin-only pending-members API with bounded pagination and a minimal application view (no NIN or bank details).
+- Added a national-admin-only membership review API. Approval/rejection and the applicant notification are committed in one database transaction; repeated review attempts are rejected. Rejection requires a recorded reason. This is an API foundation and has not yet been exercised end-to-end in a deployed staging Worker.
+
 ## Identity and relationship reconciliation
 
 Latest Neon staging check:
