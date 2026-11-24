@@ -34,12 +34,16 @@ function sameOrigin(request: Request) {
 export async function GET(request: Request) {
   return withNyfbActor(request, async (actor, pool) => {
     if (!requireApprovedMember(actor)) return forbiddenResponse();
-    const result = await pool.query(
-      "SELECT verification_status FROM public.member_bank_accounts WHERE user_id = $1::uuid LIMIT 1",
-      [actor.userId],
-    );
+    const [member, result] = await Promise.all([
+      pool.query("SELECT status::text AS status FROM public.members WHERE user_id = $1::uuid LIMIT 1", [actor.userId]),
+      pool.query(
+        "SELECT verification_status FROM public.member_bank_accounts WHERE user_id = $1::uuid LIMIT 1",
+        [actor.userId],
+      ),
+    ]);
     // Do not return bank name, account name, or account number to the member UI.
     return NextResponse.json({
+      memberStatus: member.rows[0]?.status ?? null,
       saved: result.rowCount === 1,
       verificationStatus: result.rows[0]?.verification_status ?? null,
     });
