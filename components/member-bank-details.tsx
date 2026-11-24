@@ -46,7 +46,7 @@ export default function BankDetailsPage() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Unable to load bank details.");
         if (!active) return;
-        setStatus(data.saved ? "approved" : "");
+        setStatus(data.memberStatus || "");
         setVerification(data.verificationStatus || "");
         setSaved(Boolean(data.saved));
       } catch (e) {
