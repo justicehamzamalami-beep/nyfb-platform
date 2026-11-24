@@ -35,6 +35,20 @@ export function createNyfbAuth(env: NyfbWorkerEnv) {
       "https://www.nigerianyouthforbat.org",
       env.BETTER_AUTH_URL,
     ],
+    user: {
+      additionalFields: {
+        phone: { type: "string", required: false, returned: false },
+        gender: { type: "string", required: false, returned: false },
+        dateOfBirth: { type: "string", required: false, returned: false },
+        state: { type: "string", required: false, returned: false },
+        lga: { type: "string", required: false, returned: false },
+        ward: { type: "string", required: false, returned: false },
+        occupation: { type: "string", required: false, returned: false },
+        ninNumber: { type: "string", required: false, returned: false },
+        referralCode: { type: "string", required: false, returned: false },
+        browserRegistrationKey: { type: "string", required: false, returned: false },
+      },
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,
